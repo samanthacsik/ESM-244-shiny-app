@@ -2,4 +2,4 @@
 
 ### Assessing the need for academic outreach initiatives across CA school districts (final title TBD)
 
-Created by: An Bui & Sam Csik
+**Created by:** An Bui & Sam Csik
