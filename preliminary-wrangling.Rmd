@@ -9,7 +9,26 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+```{r set up}
+#### libraries ####
+library(tidyverse)
 
+#### data ####
+# number of students rated "Prepared" for college based on a variety of criteria
+college_preparedness <- read_csv("college_preparedness.csv")
+```
+
+```{r wrangle}
+#### filter ####
+cp_subset <- college_preparedness %>% 
+  # filter only for school reports
+  filter(rtype == "S" |
+           # take out summary rows for all races
+           studentgroup != "ALL") %>% 
+  # select desired columns
+  select(cds, rtype, schoolname, districtname, countyname, studentgroup, currdenom, curr_prep, curr_prep_pct, curr_prep_apexam, curr_prep_apexam_pct, curr_prep_ibexam, curr_prep_ibexam_pct, curr_prep_collegecredit, curr_prep_collegecredit_pct)
+# idk about this data because there could be individuals who earned "Prepared" by taking AP classes AND fulfilling class requirements, but there's no info on how many students overlap between categories (if that makes sense)
+```
 
 
 
