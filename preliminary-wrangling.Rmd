@@ -11,7 +11,14 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r set up}
 #### libraries ####
+library(sf)
 library(tidyverse)
+library(tmap)
+library(leaflet)
+library(ggrepel)
+library(ggspatial)
+library(RColorBrewer)
+library(raster)
 
 #### data ####
 # number of students rated "Prepared" for college based on a variety of criteria
@@ -38,6 +45,12 @@ edu_att$UL_95CI <- as.numeric(edu_att$UL_95CI)
 edu_att$SE <- as.numeric(edu_att$SE)
 edu_att$RSE <- as.numeric(edu_att$RSE)
 edu_att$CA_RR <- as.numeric(edu_att$CA_RR)
+
+# California counties
+ca_counties <- read_sf(".", layer = "california_county_shape_file")
+
+# set same projection system as ca_eco
+st_crs(ca_counties) = 4326
 ```
 
 ```{r wrangle college preparedness}
