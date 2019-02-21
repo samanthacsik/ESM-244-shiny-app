@@ -21,6 +21,9 @@ library(RColorBrewer)
 library(raster)
 
 #### data ####
+# school enrollment
+school_enrollment <- read_csv("school_enrollment.csv")
+
 # number of students rated "Prepared" for college based on a variety of criteria
 college_preparedness <- read_csv("college_preparedness.csv")
 
