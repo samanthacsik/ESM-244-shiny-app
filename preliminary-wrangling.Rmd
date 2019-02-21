@@ -16,9 +16,31 @@ library(tidyverse)
 #### data ####
 # number of students rated "Prepared" for college based on a variety of criteria
 college_preparedness <- read_csv("college_preparedness.csv")
+
+# educational attainment for CA counties, percent of people age 25 and up with college degree or higher
+edu_att <- read_csv("edu_att_filtered.csv")
+
+edu_att$race_eth_code <- as.numeric(edu_att$race_eth_code)
+edu_att$race_eth_name <- as.character(edu_att$race_eth_name)
+edu_att$geotype <- as.character(edu_att$geotype)
+edu_att$geotypevalue <- as.numeric(edu_att$geotypevalue)
+edu_att$county_name <- as.character(edu_att$county_name)
+edu_att$county_fips <- as.numeric(edu_att$county_fips)
+edu_att$region_name <- as.character(edu_att$region_name)
+edu_att$region_code <- as.numeric(edu_att$region_code)
+edu_att$strata_one_code <- as.numeric(edu_att$strata_one_code)
+edu_att$strata_one_name <- as.character(edu_att$strata_one_name)
+edu_att$numerator <- as.numeric(edu_att$numerator)
+edu_att$denominator <- as.numeric(edu_att$denominator)
+edu_att$estimate <- as.numeric(edu_att$estimate)
+edu_att$LL_95CI <- as.numeric(edu_att$LL_95CI)
+edu_att$UL_95CI <- as.numeric(edu_att$UL_95CI)
+edu_att$SE <- as.numeric(edu_att$SE)
+edu_att$RSE <- as.numeric(edu_att$RSE)
+edu_att$CA_RR <- as.numeric(edu_att$CA_RR)
 ```
 
-```{r wrangle}
+```{r wrangle college preparedness}
 #### filter ####
 cp_subset <- college_preparedness %>% 
   # filter only for school reports
@@ -30,6 +52,9 @@ cp_subset <- college_preparedness %>%
 # idk about this data because there could be individuals who earned "Prepared" by taking AP classes AND fulfilling class requirements, but there's no info on how many students overlap between categories (if that makes sense)
 ```
 
+```{r}
+
+```
 
 
 
