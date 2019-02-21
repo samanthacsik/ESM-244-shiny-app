@@ -74,11 +74,28 @@ cp_subset <- college_preparedness %>%
 # idk about this data because there could be individuals who earned "Prepared" by taking AP classes AND fulfilling class requirements, but there's no info on how many students overlap between categories (if that makes sense)
 ```
 
-```{r}
-edu_att_arr <- edu_att %>% 
+```{r educational attainment by county and race}
+edu_att_filter <- edu_att %>% 
   filter(geotype == "CO" &
-           race_eth_name != "Total") %>% 
-  arrange(-estimate)
+           race_eth_name != "Total")
+
+alameda <- edu_att_filter %>% 
+  filter(county_name == "Alameda")
+
+edu_att_bar <- ggplot(edu_att_filter, aes(x = race_eth_name, y = estimate)) +
+  geom_bar(stat = "identity") +
+  facet_wrap(~county_name)
+edu_att_bar
+
+edu_att_alameda <- ggplot(alameda, aes(x = reorder(race_eth_name, -estimate), 
+                                       y = estimate)) +
+  geom_bar(stat = "identity", aes(fill = race_eth_name)) +
+  scale_fill_brewer(palette = "YlGnBu") +
+  theme_minimal() +
+  labs(x = "Race", 
+       y = "Percentage with college degree or higher", 
+       title = "Percentage of population 25 years or older with college degree or higher - Alameda County")
+edu_att_alameda
 ```
 
 
