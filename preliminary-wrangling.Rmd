@@ -25,7 +25,8 @@ library(raster)
 college_preparedness <- read_csv("college_preparedness.csv")
 
 # educational attainment for CA counties, percent of people age 25 and up with college degree or higher
-edu_att <- read_csv("edu_att_filtered.csv")
+edu_att <- read_csv("edu_att_filtered.csv") %>% 
+       dplyr::select("county_name", "race_eth_code", "race_eth_name", "geotype", "geotypevalue", "geoname",  "county_fips", "region_name", "region_code", "strata_one_code", "strata_one_name", "numerator",   "denominator", "estimate", "LL_95CI", "UL_95CI", "SE", "RSE", "CA_RR")
 
 edu_att$race_eth_code <- as.numeric(edu_att$race_eth_code)
 edu_att$race_eth_name <- as.character(edu_att$race_eth_name)
@@ -47,10 +48,18 @@ edu_att$RSE <- as.numeric(edu_att$RSE)
 edu_att$CA_RR <- as.numeric(edu_att$CA_RR)
 
 # California counties
-ca_counties <- read_sf(".", layer = "california_county_shape_file")
+ca_counties <- read_sf(".", layer = "california_county_shape_file") %>% 
+  rename(county_name = NAME)
 
 # set same projection system as ca_eco
 st_crs(ca_counties) = 4326
+
+# merge counties and edu_att
+# edu_att_full <- merge(edu_att, ca_counties) %>% 
+#   filter(geotype == "CO" &
+#            race_eth_name != "Total") %>% 
+#   arrange(-estimate)
+
 ```
 
 ```{r wrangle college preparedness}
@@ -66,7 +75,10 @@ cp_subset <- college_preparedness %>%
 ```
 
 ```{r}
-
+edu_att_arr <- edu_att %>% 
+  filter(geotype == "CO" &
+           race_eth_name != "Total") %>% 
+  arrange(-estimate)
 ```
 
 
