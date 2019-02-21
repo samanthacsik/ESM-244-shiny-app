@@ -5,3 +5,5 @@
 **Created by:** An Bui & Sam Csik
 
 CCI data from: https://www.cde.ca.gov/ta/ac/cm/index.asp
+
+School enrollment data from: https://www.cde.ca.gov/ds/sd/sd/fsenr.asp
