@@ -146,7 +146,9 @@ alameda_amear <- sc_en %>%
 
 alameda_schools_plot <- ggplot(alameda_amear, aes(x = grade, y = students)) +
   geom_bar(stat = "identity", position = "dodge", aes(fill = race_eth_name)) +
-  facet_wrap(~gender)
+  scale_fill_brewer(palette = "Spectral") +
+  facet_wrap(~gender) +
+  theme_minimal()
 alameda_schools_plot
 ```
 
