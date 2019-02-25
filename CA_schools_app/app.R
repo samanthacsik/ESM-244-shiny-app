@@ -1,6 +1,7 @@
 library(tidyverse)
 library(shiny)
 library(shinythemes)
+library(leaflet)
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
@@ -23,7 +24,8 @@ ui <- fluidPage(
       mainPanel(
          tabsetPanel(
            type = "tab",
-           tabPanel("Instructions"),
+           tabPanel("Instructions",
+                    leafletOutput("mymap",height = 1000)),
            tabPanel("Enrollment by Race & Gender"),
            tabPanel("College Preparedness Model"),
            tabPanel("Data Explorer")
@@ -36,13 +38,12 @@ ui <- fluidPage(
 # Define server logic required to draw a histogram
 server <- function(input, output) {
    
-   output$distPlot <- renderPlot({
-      # generate bins based on input$bins from ui.R
-      x    <- faithful[, 2] 
-      bins <- seq(min(x), max(x), length.out = input$bins + 1)
-      
-      # draw the histogram with the specified number of bins
-      hist(x, breaks = bins, col = 'darkgray', border = 'white')
+  output$mymap <- renderLeaflet({
+    m <- leaflet() %>% # creates map widget
+      addTiles() %>% # adds the default OpenStreet map tiles
+      setView(lng=-73.935242, lat=40.730610 , zoom=10) # sets view to provided coordinates
+    m
+    
    })
 }
 
