@@ -87,12 +87,7 @@ edu_att$SE <- as.numeric(edu_att$SE)
 edu_att$RSE <- as.numeric(edu_att$RSE)
 edu_att$CA_RR <- as.numeric(edu_att$CA_RR)
 
-# California counties
-ca_counties <- read_sf(".", layer = "california_county_shape_file") %>% 
-  rename(county_name = NAME)
 
-# set same projection system as ca_eco
-st_crs(ca_counties) = 4326
 
 # merge counties and edu_att
 # edu_att_full <- merge(edu_att, ca_counties) %>% 
@@ -152,5 +147,29 @@ alameda_schools_plot <- ggplot(alameda_amear, aes(x = grade, y = students)) +
 alameda_schools_plot
 ```
 
+```{r map}
+# California counties
+ca_counties <- read_sf(".", layer = "california_county_shape_file") %>% 
+  dplyr::select(NAME) %>% 
+  rename(county_name = NAME)
 
+# set coordinate system to be 4326
+st_crs(ca_counties) = 4326
+
+ca_counties_merge <- ca_counties
+
+# try merging ca_counties with school enrollment
+school_enrollment_merge <- school_enrollment %>% 
+  dplyr::select(COUNTY, DISTRICT, SCHOOL) %>% 
+  rename(county_name = COUNTY) %>% 
+  unique()
+
+county_schools <- merge(school_enrollment_merge, ca_counties_merge)
+
+alameda_schools <- county_schools %>% 
+  filter(county_name == "Alameda")
+
+plot(alameda_schools)
+
+```
 
