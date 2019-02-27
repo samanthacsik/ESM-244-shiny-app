@@ -4,18 +4,15 @@ library(shinythemes)
 
 # Define UI for application that draws a histogram
 shinyUI(fluidPage(
-  theme = shinytheme("darkly"),
+  theme = shinytheme("flatly"),
   
   # Application title
   titlePanel("Assessing the need for academic outreach initiatives across CA school districts"),
   
   # Add navbar 
-  navbarPage("MENU",
-        tabPanel("Instructions",
-                 fluidRow(
-                   column(6, "summary & data go here"),
-                   column(6, "instructions go here"))
-                 ),
+  mainPanel(
+    tabsetPanel(
+        tabPanel("Instructions"),
         tabPanel("Population & Income",
                  fluidRow(
                    column(4, "outputs go here"),
@@ -23,11 +20,12 @@ shinyUI(fluidPage(
                  )),
         tabPanel("Enrollment by Race & Gender",
                  fluidRow(
+                   column(2, "widgets here"),
                    column(5, "table here"),
                    column(5, "stacked column here")
                  )),
         tabPanel("College Preparedness Model")
-        
+    )
   
   # # Sidebar with a slider input for number of bins 
   # sidebarLayout(

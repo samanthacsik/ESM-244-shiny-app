@@ -110,7 +110,7 @@ cp_subset <- college_preparedness %>%
            # take out summary rows for all races
            studentgroup != "ALL") %>% 
   # select desired columns
-  select(cds, rtype, schoolname, districtname, countyname, studentgroup, currdenom, curr_prep, curr_prep_pct, curr_prep_apexam, curr_prep_apexam_pct, curr_prep_ibexam, curr_prep_ibexam_pct, curr_prep_collegecredit, curr_prep_collegecredit_pct)
+  dplyr::select(cds, rtype, schoolname, districtname, countyname, studentgroup, currdenom, curr_prep, curr_prep_pct, curr_prep_apexam, curr_prep_apexam_pct, curr_prep_ibexam, curr_prep_ibexam_pct, curr_prep_collegecredit, curr_prep_collegecredit_pct)
 # idk about this data because there could be individuals who earned "Prepared" by taking AP classes AND fulfilling class requirements, but there's no info on how many students overlap between categories (if that makes sense)
 ```
 
