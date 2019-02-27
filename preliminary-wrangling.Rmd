@@ -3,6 +3,8 @@ title: "Prelim wrangling"
 author: "An Bui, Sam Csik"
 date: "2/11/2019"
 output: html_document
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
@@ -113,6 +115,8 @@ cp_subset <- college_preparedness %>%
 edu_att_filter <- edu_att %>% 
   filter(geotype == "CO" &
            race_eth_name != "Total")
+
+# write.csv(edu_att, file = "edu_att_filter.csv")
 
 alameda <- edu_att_filter %>% 
   filter(county_name == "Alameda")

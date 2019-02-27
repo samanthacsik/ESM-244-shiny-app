@@ -41,6 +41,8 @@ library(tmap)
 ##############################
 ca_counties <- st_read(dsn = ".", layer = "CA_Counties_TIGER2016") # "." means we're already in our wd; layer = "first common string name of each file used"
 
+write_csv(ca_counties, "ca_counties.csv")
+
 ca_secondary_districts <- st_read(dsn = ".", layer = "cb_2017_06_scsd_500k")  %>% 
   rename(CODE = SCSDLEA)
 
