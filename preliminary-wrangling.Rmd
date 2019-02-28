@@ -152,10 +152,44 @@ alameda_schools_plot
 ```
 
 ```{r map}
+####sam test####
+
+# load district data for elementary, secondary, and unified school districts
+ca_elementary_districts <- st_read(dsn = ".", layer = "cb_2017_06_elsd_500k") %>% 
+  rename(CODE = ELSDLEA)
+
+ca_secondary_districts <- st_read(dsn = ".", layer = "cb_2017_06_scsd_500k")  %>%
+   rename(CODE = SCSDLEA)
+
+ca_unified_districts <- st_read(dsn = ".", layer = "cb_2017_06_unsd_500K") %>%
+   rename(CODE = UNSDLEA)
+
+# merge data for all districts into 1 df
+ca_districts <- rbind(ca_elementary_districts, ca_secondary_districts, ca_unified_districts)
+
+# set coordinate sysstem to 4326 for all ca_districts
+ca_df_transform <- st_transform(ca_districts, crs = 4326)
+
+# not sure what this is but copying from An's code below
+ca_merge <- ca_districts
+
+# try merging ca_districts with school enrollment
+school_enrollment_merge <- school_enrollment %>% 
+  dplyr::select(COUNTY, DISTRICT, SCHOOL) %>% 
+  rename(county_name = COUNTY) %>% 
+  unique()
+
+district_schools <- merge(school_enrollment_merge, ca_merge)
+
+
+
+
+####end sam test####
+
 # California counties
 ca_counties <- read_sf(".", layer = "california_county_shape_file") %>% 
   dplyr::select(NAME) %>% 
-  rename(county_name = NAME)
+  
 
 # set coordinate system to be 4326
 st_crs(ca_counties) = 4326
