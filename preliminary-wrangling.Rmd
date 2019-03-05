@@ -184,7 +184,7 @@ ca_districts_final <- ca_districts_binded %>%
   rename(DISTRICT = ca_districts_removed)
 
 # join school_enrollment data with spatial (ca_districts_final) data
-ca_district_enrollment <- full_join(ca_districts_final, school_enrollment)
+ca_district_enrollment <- full_join(ca_districts_final, sc_en)
 
 ####end sam test####
 
