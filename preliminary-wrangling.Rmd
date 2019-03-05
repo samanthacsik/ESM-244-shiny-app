@@ -168,21 +168,23 @@ ca_unified_districts <- st_read(dsn = ".", layer = "cb_2017_06_unsd_500K") %>%
 ca_districts <- rbind(ca_elementary_districts, ca_secondary_districts, ca_unified_districts)
 
 # set coordinate sysstem to 4326 for all ca_districts
-ca_df_transform <- st_transform(ca_districts, crs = 4326)
+ca_districts_transform <- st_transform(ca_districts, crs = 4326) #%>%
+  #rename(DISTRICT = NAME)
 
-# not sure what this is but copying from An's code below
-ca_merge <- ca_districts
+# coerce NAME from factor to character
+ca_districts_transform$NAME <- as.character(ca_districts_transform$NAME)
 
-# try merging ca_districts with school enrollment
-school_enrollment_merge <- school_enrollment %>% 
-  dplyr::select(COUNTY, DISTRICT, SCHOOL) %>% 
-  rename(county_name = COUNTY) %>% 
-  unique()
+# remove "School District" from NAME
+ca_districts_removed <- str_remove(ca_districts_transform$NAME, "School District") %>% 
 
-district_schools <- merge(school_enrollment_merge, ca_merge)
+# combine ca_districts_removed back with ca_districts_transform
+ca_districts_binded <- cbind(ca_districts_transform, ca_districts_removed) 
 
+ca_districts_final <- ca_districts_binded %>% 
+  rename(DISTRICT = ca_districts_removed)
 
-
+# join school_enrollment data with spatial (ca_districts_final) data
+ca_district_enrollment <- full_join(ca_districts_final, school_enrollment)
 
 ####end sam test####
 
