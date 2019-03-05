@@ -1,3 +1,5 @@
+# SAM
+
 ##############################
 # install packages
 ##############################
@@ -12,9 +14,10 @@ library(sf)
 ##############################
 
 ca_counties <- read_csv("/Users/samanthacsik/Repositories/ESM-244-shiny-app/CA_schools_app3/ca_counties.csv") 
-county_names <- setNames(ca_counties$NAME, ca_counties$NAME) # was ca_counties#county_name
+# county_names <- setNames(ca_counties$NAME, ca_counties$NAME) # was ca_counties#county_name
 district_enr <- st_read("/Users/samanthacsik/Repositories/ESM-244-shiny-app/CA_schools_app3/district_enr_spatial.shp")
-district_names <- as.character(setNames(district_enr$DISTRICT, district_enr$DISTRICT)) 
+# district_names <- as.character(setNames(district_enr$DISTRICT, district_enr$DISTRICT)) 
+
 ##############################
 # build ui
 ##############################
@@ -39,17 +42,19 @@ district_names <- as.character(setNames(district_enr$DISTRICT, district_enr$DIST
                   tags$a(href = "https://www.cde.ca.gov/ds/dd/index.asp", "Click here to access data")
                   ),
          
-         # panel 2 (map and income)
+         # panel 2 (map of income and enrollment by district)
          tabPanel("Population, Income & Enrollment",
                   fluidRow(
                     
-                    selectizeInput("county", "Select County", county_names),
-                    dataTableOutput(outputId = 'selectedCounty'),
+                    # select counties widget
+                    selectizeInput("county", "Select County", ca_counties$NAME), # was county_names
+                    # dataTableOutput(outputId = 'selectedCounty'),
                     
-                    selectizeInput("district", "Select District", district_names)
+                    # select districts widget
+                    selectizeInput("district", "Select District", district_enr$DISTRICT), # was district names
 
-                    
-                    # leafletOutput(outputID = "CA_Map")
+                    # create output for map
+                    leafletOutput("CA_Map", height = 500)
                     
                   )),
          
