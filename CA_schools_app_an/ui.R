@@ -13,11 +13,6 @@ library(sf)
 # load data
 ##############################
 
-ca_counties <- read_csv("/Users/samanthacsik/Repositories/ESM-244-shiny-app/CA_schools_app3/ca_counties.csv") 
-county_names <- setNames(ca_counties$NAME, ca_counties$NAME) # was ca_counties#county_name
-district_enr <- st_read("/Users/samanthacsik/Repositories/ESM-244-shiny-app/CA_schools_app3/district_enr_spatial.shp")
-district_names <- as.character(setNames(district_enr$DISTRICT, district_enr$DISTRICT)) 
-
 ##############################
 # build ui
 ##############################
