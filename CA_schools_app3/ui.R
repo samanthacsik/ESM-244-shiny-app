@@ -12,11 +12,9 @@ library(sf)
 ##############################
 
 ca_counties <- read_csv("/Users/samanthacsik/Repositories/ESM-244-shiny-app/CA_schools_app3/ca_counties.csv") 
-# edu_att_filter <- read_csv("edu_att_filter.csv") 
-ca_names <- setNames(ca_counties$NAME, ca_counties$NAME) # was ca_counties#county_name
-#district_enr <- st_read("CA_schools_app3/district_enr_spatial.shp")
-#district_enr_spatial <- read_csv("CA_schools_app3/district_enr_spatial.csv")
-
+county_names <- setNames(ca_counties$NAME, ca_counties$NAME) # was ca_counties#county_name
+district_enr <- st_read("/Users/samanthacsik/Repositories/ESM-244-shiny-app/CA_schools_app3/district_enr_spatial.shp")
+district_names <- as.character(setNames(district_enr$DISTRICT, district_enr$DISTRICT)) 
 ##############################
 # build ui
 ##############################
@@ -44,8 +42,15 @@ ca_names <- setNames(ca_counties$NAME, ca_counties$NAME) # was ca_counties#count
          # panel 2 (map and income)
          tabPanel("Population, Income & Enrollment",
                   fluidRow(
-                    selectInput("county", "Select County", ca_names),
-                    dataTableOutput(outputId = 'selectedCounty')
+                    
+                    selectizeInput("county", "Select County", county_names),
+                    dataTableOutput(outputId = 'selectedCounty'),
+                    
+                    selectizeInput("district", "Select District", district_names)
+
+                    
+                    # leafletOutput(outputID = "CA_Map")
+                    
                   )),
          
          # panel 3 ()

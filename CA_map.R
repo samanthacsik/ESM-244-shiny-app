@@ -30,7 +30,7 @@ library(tmap)
 ca_counties <- st_read(dsn = ".", layer = "CA_Counties_TIGER2016") %>%  # "." means we're already in our wd; layer = "first common string name of each file used"
   arrange(NAME)
 
-write_csv(ca_counties, "ca_counties.csv")
+# write_csv(ca_counties, "ca_counties.csv")
 
 # view county data in easy plot
 ca_land <- ca_counties %>% 
@@ -163,10 +163,16 @@ sc_en_dist <- school_enrollment %>%
 # join district geometries (ca_districts_final) with enrollment data by districts (sc_en_dist)
 ##############################
 
-district_enr_spatial <- full_join(ca_districts_final, sc_en_dist)
+district_enr_spatial <- full_join(ca_districts_final, sc_en_dist) %>% 
+  arrange(DISTRICT)
 
-# write otu spatial data to call in shiny app
-#st_write(district_enr_spatial, "district_enr_spatial.shp")
+st_write(district_enr_spatial, "district_enr_spatial.shp")
+
+district_names <- district_enr_spatial %>% 
+  pull(DISTRICT)
+
+# write out spatial data to call in shiny app
+
 
 #write.csv(district_enr_spatial, "district_enr_spatial.csv")
 
