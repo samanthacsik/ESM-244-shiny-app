@@ -26,6 +26,7 @@ library(raster)
 # school enrollment
 school_enrollment <- read_csv("school_enrollment.csv") %>% 
   gather("grade", "students", 7:21) %>%
+  select(-CDS_CODE) %>% 
   mutate(race_eth_name = case_when(
     ETHNIC == "0" ~ "Not reported",
     ETHNIC == "1" ~ "AIAN",
@@ -38,30 +39,31 @@ school_enrollment <- read_csv("school_enrollment.csv") %>%
     ETHNIC == "9" ~ "Multiple"),
     gender = case_when(
       GENDER == "F" ~ "female",
-      GENDER == "M" ~ "male"
-    ))
-
-sc_en <- school_enrollment %>% 
-  filter(grade != "NA") %>% 
-  mutate(grade_num = case_when(
+      GENDER == "M" ~ "male"),
+    grade_num = case_when(
     grade == "KDGN" ~ 0,
-    grade == "GR_1" ~ 1, 
+    grade == "GR_1" ~ 1,
     grade == "GR_2" ~ 2,
     grade == "GR_3" ~ 3,
     grade == "GR_4" ~ 4,
-    grade == "GR_5" ~ 5, 
-    grade == "GR_6" ~ 6, 
-    grade == "GR_7" ~ 7, 
-    grade == "GR_8" ~ 8, 
-    grade == "GR_9" ~ 9, 
-    grade == "GR_10" ~ 10, 
-    grade == "GR_11" ~ 11, 
-    grade == "GR_12" ~ 12
-  )) 
+    grade == "GR_5" ~ 5,
+    grade == "GR_6" ~ 6,
+    grade == "GR_7" ~ 7,
+    grade == "GR_8" ~ 8,
+    grade == "GR_9" ~ 9,
+    grade == "GR_10" ~ 10,
+    grade == "GR_11" ~ 11,
+    grade == "GR_12" ~ 12))
+  # filter(grade_num != "NA")
 
 grades <- c("KDGN", "GR_1", "GR_2", "GR_3", "GR_4", "GR_5", "GR_6", "GR_7", "GR_8", "GR_9", "GR_10", "GR_11", "GR_12")
 
-sc_en$grade <- factor(sc_en$grade, levels = grades)
+race_eth <- c("AfricanAm", "AIAN", "Asian", "Filipino", "Latino", "PIsl", "White", "Multiple", "Not reported")
+
+school_enrollment$grade <- factor(school_enrollment$grade, levels = grades)
+school_enrollment$race_eth_name <- factor(school_enrollment$race_eth_name, levels = race_eth)
+
+write_csv(school_enrollment, "sc_en.csv")
 
 # number of students rated "Prepared" for college based on a variety of criteria
 college_preparedness <- read_csv("college_preparedness.csv")
@@ -138,16 +140,19 @@ edu_att_alameda
 ```
 
 ```{r test wrangle for Amelia Earhart Elementary in Alameda County}
-alameda_amear <- sc_en %>% 
+sc_en_final <- read_csv("sc_en.csv")
+
+alameda_amear <- school_enrollment %>% 
   filter(COUNTY == "Alameda" &
            SCHOOL == "Amelia Earhart Elementary" &
-           grade_num < 6)
+           grade_num == "5")
 
-alameda_schools_plot <- ggplot(alameda_amear, aes(x = grade, y = students)) +
+alameda_schools_plot <- ggplot(alameda_amear, aes(x = reorder(race_eth_name, -students), y = students)) +
   geom_bar(stat = "identity", position = "dodge", aes(fill = race_eth_name)) +
   scale_fill_brewer(palette = "Spectral") +
   facet_wrap(~gender) +
   theme_minimal()
+
 alameda_schools_plot
 ```
 
