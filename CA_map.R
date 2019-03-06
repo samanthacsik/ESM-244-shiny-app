@@ -6,6 +6,7 @@ library(tidyverse)
 library(sf)
 library(leaflet)
 library(tmap)
+library(ggmap)
 
 ##############################
 # plot & color code by income using sf
@@ -39,6 +40,7 @@ ca_land <- ca_counties %>%
 # Read pop/income data, then make sure county names column matches
 ca_pop_inc <- read_csv("ca_pop_inc.csv") %>% 
   rename(NAME = COUNTY)
+  #select(NAME)
 
 # Join the two: 
 ca_df <- full_join(ca_land, ca_pop_inc) %>% 
@@ -50,7 +52,25 @@ ca_income <- ggplot(ca_df) +
   scale_fill_gradientn(colors = c("blue","mediumorchid1","orange")) +
   theme_minimal()
 
-ca_income
+###############################################
+
+# county data
+ca_counties <- st_read(dsn = ".", layer = "CA_Counties_TIGER2016") %>%
+  arrange(NAME)
+
+# set crs to 4326 for county data
+ca_counties_transform <- st_transform(ca_counties, crs = 4326) 
+ 
+# # median income data
+ca_pop_inc <- read_csv("ca_pop_inc.csv") %>%
+  rename(NAME = COUNTY) %>%
+  select(NAME, Population, MedFamilyIncome)
+
+# # complete county data with median family income by county
+COUNTY_INCOME_DATA <- full_join(ca_counties, ca_pop_inc) %>% 
+  st_transform(crs = 4326)
+
+st_write(COUNTY_INCOME_DATA, "COUNTY_INCOME_DATA_transform.shp")
 
 ##############################
 # CA districts using spatial data
@@ -70,21 +90,24 @@ ca_unified_districts <- st_read(dsn = ".", layer = "cb_2017_06_unsd_500K") %>%
 ca_districts <- rbind(ca_elementary_districts, ca_secondary_districts, ca_unified_districts)
 
 # set coordinate sysstem to 4326 for all ca_districts
-ca_districts_transform <- st_transform(ca_districts, crs = 4326) 
+ca_districts_transform <- st_transform(ca_districts, crs = 4326) %>% 
+  rename(DISTRICT = NAME) %>% 
+  arrange(DISTRICT)
 
 # coerce NAME from factor to character
-ca_districts_transform$NAME <- as.character(ca_districts_transform$NAME)
+ca_districts_transform$DISTRICT <- as.character(ca_districts_transform$DISTRICT)
 
 # remove "School District" from NAME
-ca_districts_removed <- str_remove(ca_districts_transform$NAME, " School District") 
+ca_districts_removed <- str_remove(ca_districts_transform$DISTRICT, " School District") 
 
 # combine ca_districts_removed back with ca_districts_transform
 ca_districts_binded <- cbind(ca_districts_transform, ca_districts_removed) 
 
 # revised district names + geometry data
 ca_districts_final <- ca_districts_binded %>% 
-  rename(DISTRICT = ca_districts_removed) %>% 
-  dplyr::select(DISTRICT)
+  dplyr::select(ca_districts_removed) %>% 
+  rename(DISTRICT = ca_districts_removed) # %>%
+  # dplyr::select(DISTRICT)
 
 ##############################
 # load in enrollment data and wrangle
@@ -166,15 +189,40 @@ sc_en_dist <- school_enrollment %>%
 district_enr_spatial <- full_join(ca_districts_final, sc_en_dist) %>% 
   arrange(DISTRICT)
 
-st_write(district_enr_spatial, "district_enr_spatial.shp")
+#st_write(district_enr_spatial, "district_enr_spatial.shp")
 
-district_names <- district_enr_spatial %>% 
-  pull(DISTRICT)
-
-# write out spatial data to call in shiny app
-
+# district_names <- district_enr_spatial %>% 
+#   pull(DISTRICT)
 
 #write.csv(district_enr_spatial, "district_enr_spatial.csv")
+
+##############################
+# load in coordinate data
+##############################
+
+latlong <- read_csv("CA_schools_app3/pubdistricts.csv") %>%
+  rename(DISTRICT = District) %>% 
+  arrange(DISTRICT) %>% 
+  dplyr::select(DISTRICT, Latitude, Longitude) 
+
+# remove " District" from end of each school district name
+latlong_district_removed <- str_remove(latlong$DISTRICT, " District")
+
+# combine ca_districts_removed back with ca_districts_transform
+latlong_binded <- cbind(latlong, latlong_district_removed) %>% 
+  select(latlong_district_removed, Latitude, Longitude) %>% 
+  rename(DISTRICT = latlong_district_removed)
+
+# combine latlong data with district_enr_spatial
+DISTRICT_DATA <- full_join(district_enr_spatial, latlong_binded) %>% 
+  arrange(DISTRICT)
+
+# st_write(DISTRICT_DATA, "DISTRICT_DATA.shp")
+# write_csv(DISTRICT_DATA, "DISTRICT_DATA.csv")
+
+# DISTRICT_DATA2 <- st_read("/Users/samanthacsik/Repositories/ESM-244-shiny-app/CA_schools_app3/DISTRICT_DATA.shp")
+
+# a <- subset(DISTRICT_DATA2, DISTRICT_DATA2$DISTRICT=='ABC Unified')
 
 ##############################
 # use geom_sf to make a map in ggplot
@@ -192,12 +240,16 @@ map_districts <- leaflet() %>%
           lat = 36.7783,
           zoom = 6)
 
-##############################
-# load in coordinate data
-##############################
 
-# latlong <- read_csv("pubschls.csv") %>%
-#   dplyr::select(CDSCode, County, School, Latitude, Longitude) %>%
-#   rename(CDS_CODE = CDSCode)
-
+observe({
+  if(input$county != "") {
+    
+    polygon <- subset(COUNTY_INCOME_DATA, COUNTY_INCOME_DATA$NAME == input$county)
+    
+    # remove any previously highlighted polygons
+    ca_county %>% clearGroup("highlighted_polygon")
+    
+    # center the view on the county polygon
+  }
+})
 

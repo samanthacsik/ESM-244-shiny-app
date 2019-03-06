@@ -8,15 +8,17 @@ library(tidyverse)
 library(shiny)
 library(shinythemes)
 library(sf)
+library(ggmap)
 
 ##############################
 # load data
 ##############################
 
-ca_counties <- read_csv("/Users/samanthacsik/Repositories/ESM-244-shiny-app/CA_schools_app3/ca_counties.csv") 
-# county_names <- setNames(ca_counties$NAME, ca_counties$NAME) # was ca_counties#county_name
-district_enr <- st_read("/Users/samanthacsik/Repositories/ESM-244-shiny-app/CA_schools_app3/district_enr_spatial.shp")
-# district_names <- as.character(setNames(district_enr$DISTRICT, district_enr$DISTRICT)) 
+# complete district data with enrollment by district (includes polygons and lat long)
+COUNTY_INCOME_DATA <- st_read("/Users/samanthacsik/Repositories/ESM-244-shiny-app/CA_schools_app3/COUNTY_INCOME_DATA_transform.shp")
+
+# complete district data with enrollment by district (includes polygons and lat long)
+DISTRICT_DATA <- st_read("/Users/samanthacsik/Repositories/ESM-244-shiny-app/CA_schools_app3/DISTRICT_DATA.shp")
 
 ##############################
 # build ui
@@ -44,19 +46,23 @@ district_enr <- st_read("/Users/samanthacsik/Repositories/ESM-244-shiny-app/CA_s
          
          # panel 2 (map of income and enrollment by district)
          tabPanel("Population, Income & Enrollment",
-                  fluidRow(
+                  sidebarLayout(
+                    sidebarPanel(
+                      # select counties widget
+                      selectInput("county", "Select County", COUNTY_INCOME_DATA$NAME), 
+                      # dataTableOutput(outputId = 'selectedCounty'),
                     
-                    # select counties widget
-                    selectizeInput("county", "Select County", ca_counties$NAME), # was county_names
-                    # dataTableOutput(outputId = 'selectedCounty'),
-                    
-                    # select districts widget
-                    selectizeInput("district", "Select District", district_enr$DISTRICT), # was district names
+                      # select districts widget
+                      selectInput("district", label = "Select District", DISTRICT_DATA$DISTRICT) # can remove inputID
+                    ),
+                    mainPanel(
+                      textOutput("something_here"),
+                      textOutput("something_else"),
+                      # create output for map
+                      leafletOutput("CA_Map", width = 600, height = 700)
 
-                    # create output for map
-                    leafletOutput("CA_Map", height = 500)
-                    
-                  )),
+                    )
+                )),
          
          # panel 3 ()
          tabPanel("Enrollment by Race & Gender",
