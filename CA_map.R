@@ -6,7 +6,6 @@ library(tidyverse)
 library(sf)
 library(leaflet)
 library(tmap)
-library(ggmap)
 
 ##############################
 # plot & color code by income using sf
@@ -28,55 +27,82 @@ library(ggmap)
 # CA counties & med income using spatial data (data from lab 1)
 ##############################
 
-ca_counties <- st_read(dsn = ".", layer = "CA_Counties_TIGER2016") %>%  # "." means we're already in our wd; layer = "first common string name of each file used"
-  arrange(NAME)
+# ca_counties <- st_read(dsn = ".", layer = "CA_Counties_TIGER2016") %>%  # "." means we're already in our wd; layer = "first common string name of each file used"
+#   arrange(NAME)
 
 # write_csv(ca_counties, "ca_counties.csv")
 
 # view county data in easy plot
-ca_land <- ca_counties %>% 
-  dplyr::select(NAME, ALAND)
-
-# Read pop/income data, then make sure county names column matches
-ca_pop_inc <- read_csv("ca_pop_inc.csv") %>% 
-  rename(NAME = COUNTY)
+# ca_land <- ca_counties %>% 
+#   dplyr::select(NAME, ALAND)
+# 
+# # Read pop/income data, then make sure county names column matches
+# ca_pop_inc <- read_csv("ca_pop_inc.csv") %>% 
+#   rename(NAME = COUNTY)
   #select(NAME)
 
 # Join the two: 
-ca_df <- full_join(ca_land, ca_pop_inc) %>% 
-  dplyr::select(NAME, MedFamilyIncome)
+# ca_df <- full_join(ca_land, ca_pop_inc) %>% 
+#   dplyr::select(NAME, MedFamilyIncome)
+# 
+# # Make a map: 
+# ca_income <- ggplot(ca_df) +
+#   geom_sf(aes(fill = MedFamilyIncome), color = "white", size = 0.2) +
+#   scale_fill_gradientn(colors = c("blue","mediumorchid1","orange")) +
+#   theme_minimal()
 
-# Make a map: 
-ca_income <- ggplot(ca_df) +
-  geom_sf(aes(fill = MedFamilyIncome), color = "white", size = 0.2) +
-  scale_fill_gradientn(colors = c("blue","mediumorchid1","orange")) +
-  theme_minimal()
+##############################
+# Load county spatial data & transform crs
+##############################
 
-###############################################
-
-# county data
+# https://data.ca.gov/dataset/ca-geographic-boundaries (county data)
 ca_counties <- st_read(dsn = ".", layer = "CA_Counties_TIGER2016") %>%
   arrange(NAME)
 
 # set crs to 4326 for county data
 ca_counties_transform <- st_transform(ca_counties, crs = 4326) 
+
+##############################
+# Load lat long data for counties
+##############################
+
+# import county lat long data
+county_latlong <- read_csv("county_latlong.csv") 
+
+# join county geometry data with lat long data
+# ca_counties_latlong <- full_join(ca_counties_transform, county_latlong) %>% 
+#   st_transform(crs = 4326)
  
+##############################
+# Load income by county data
+##############################
+
 # # median income data
 ca_pop_inc <- read_csv("ca_pop_inc.csv") %>%
   rename(NAME = COUNTY) %>%
   select(NAME, Population, MedFamilyIncome)
 
-# # complete county data with median family income by county
-COUNTY_INCOME_DATA <- full_join(ca_counties, ca_pop_inc) %>% 
+##############################
+# Join income and latlong data (no geometries yet)
+##############################
+
+# join population and income data with latlong data
+ca_pop_inc_latlong <- full_join(ca_pop_inc, county_latlong)
+
+##############################
+# Join income/latlong data with county spatial data -- FINAL DATA SET TO USE IN SHINY
+##############################
+
+COUNTY_INCOME_DATA <- full_join(ca_counties, ca_pop_inc_latlong) %>% 
   st_transform(crs = 4326)
 
-st_write(COUNTY_INCOME_DATA, "COUNTY_INCOME_DATA_transform.shp")
+#st_write(COUNTY_INCOME_DATA, "COUNTY_INCOME_DATA_transform_latlong.shp")
 
 ##############################
-# CA districts using spatial data
+# Load district spatial data (elementary, secondar, unified), bind all 3 together, set crs, and remove the string 'School District' from the end of each district name so that it matches the names from enrollment, free meals, and dropout data from CA DoE
 ##############################
 
-# https://www.census.gov/geo/maps-data/data/cbf/cbf_sd.html
+# https://www.census.gov/geo/maps-data/data/cbf/cbf_sd.html (2017)
 
 ca_elementary_districts <- st_read(dsn = ".", layer = "cb_2017_06_elsd_500k") %>% 
   rename(CODE = ELSDLEA)
@@ -113,80 +139,59 @@ ca_districts_final <- ca_districts_binded %>%
 # load in enrollment data and wrangle
 ##############################
 
-school_enrollment <- read_csv("school_enrollment.csv") %>% 
-  gather("grade", "students", 7:21) %>%
-  mutate(race_eth_name = case_when(
-    ETHNIC == "0" ~ "Not reported",
-    ETHNIC == "1" ~ "AIAN",
-    ETHNIC == "2" ~ "Asian",
-    ETHNIC == "3" ~ "PIsl",
-    ETHNIC == "4" ~ "Filipino",
-    ETHNIC == "5" ~ "Latino",
-    ETHNIC == "6" ~ "AfricanAm",
-    ETHNIC == "7" ~ "White",
-    ETHNIC == "9" ~ "Multiple"),
-    gender = case_when(
-      GENDER == "F" ~ "female",
-      GENDER == "M" ~ "male"
-    ))
-
-# summarize enrollment by district
-sc_en_dist <- school_enrollment %>% 
-  filter(grade != "NA") %>% 
-  group_by(DISTRICT) %>% 
-  summarise(total_enr = sum(ENR_TOTAL))
-
-# summarize enrollment by county
-# sc_en_county <- school_enrollment %>% 
-#   filter(grade != "NA") %>% 
-#   mutate(grade_num = case_when(
-#     grade == "KDGN" ~ 0,
-#     grade == "GR_1" ~ 1, 
-#     grade == "GR_2" ~ 2,
-#     grade == "GR_3" ~ 3,
-#     grade == "GR_4" ~ 4,
-#     grade == "GR_5" ~ 5, 
-#     grade == "GR_6" ~ 6, 
-#     grade == "GR_7" ~ 7, 
-#     grade == "GR_8" ~ 8, 
-#     grade == "GR_9" ~ 9, 
-#     grade == "GR_10" ~ 10, 
-#     grade == "GR_11" ~ 11, 
-#     grade == "GR_12" ~ 12
-#   )) %>% 
-#   group_by(COUNTY) %>% 
-#   summarise(total_enr = sum(ENR_TOTAL))
-
-# summarize enrollment by cds code
-# sc_en_cds <- school_enrollment %>% 
-#   filter(grade != "NA") %>% 
-#   mutate(grade_num = case_when(
-#     grade == "KDGN" ~ 0,
-#     grade == "GR_1" ~ 1, 
-#     grade == "GR_2" ~ 2,
-#     grade == "GR_3" ~ 3,
-#     grade == "GR_4" ~ 4,
-#     grade == "GR_5" ~ 5, 
-#     grade == "GR_6" ~ 6, 
-#     grade == "GR_7" ~ 7, 
-#     grade == "GR_8" ~ 8, 
-#     grade == "GR_9" ~ 9, 
-#     grade == "GR_10" ~ 10, 
-#     grade == "GR_11" ~ 11, 
-#     grade == "GR_12" ~ 12
-#   )) %>% 
-#   group_by(CDS_CODE) %>% 
-#   summarise(total_enr = sum(ENR_TOTAL))
-
-# grades <- c("KDGN", "GR_1", "GR_2", "GR_3", "GR_4", "GR_5", "GR_6", "GR_7", "GR_8", "GR_9", "GR_10", "GR_11", "GR_12")
+# school_enrollment <- read_csv("school_enrollment.csv") %>% 
+#   gather("grade", "students", 7:21) %>%
+#   mutate(race_eth_name = case_when(
+#     ETHNIC == "0" ~ "Not reported",
+#     ETHNIC == "1" ~ "AIAN",
+#     ETHNIC == "2" ~ "Asian",
+#     ETHNIC == "3" ~ "PIsl",
+#     ETHNIC == "4" ~ "Filipino",
+#     ETHNIC == "5" ~ "Latino",
+#     ETHNIC == "6" ~ "AfricanAm",
+#     ETHNIC == "7" ~ "White",
+#     ETHNIC == "9" ~ "Multiple"),
+#     gender = case_when(
+#       GENDER == "F" ~ "female",
+#       GENDER == "M" ~ "male"
+#     ))
 # 
-# sc_en$grade <- factor(sc_en$grade, levels = grades)
+# # summarize enrollment by district
+# sc_en_dist <- school_enrollment %>% 
+#   filter(grade != "NA") %>% 
+#   group_by(DISTRICT) %>% 
+#   summarise(total_enr = sum(students))
+
 
 ##############################
-# join district geometries (ca_districts_final) with enrollment data by districts (sc_en_dist)
+# Load & wrangle free or reduced meal program data, which also includes enrollment data (year 16-17)
 ##############################
 
-district_enr_spatial <- full_join(ca_districts_final, sc_en_dist) %>% 
+lunch <- read_csv("free_reduced_lunch.csv") %>% 
+  select(county_name, district_name, enrollment_K12, FRPM_count_K12) %>% 
+  rename(DISTRICT = district_name) %>% 
+  group_by(DISTRICT) %>% 
+  summarise(total_lunch = sum(FRPM_count_K12),
+            total_enr = sum(enrollment_K12))
+
+##############################
+# Load & wrangle dropout data (year 16-17)
+##############################
+
+dropouts <- read_csv("dropouts1617.csv")
+
+
+##############################
+# Load & wrangle meet UC/CSU requirements (year 16-17)
+##############################
+
+requirements <- read_csv("meet_uc_requirements1617")
+
+##############################
+# join district geometries (ca_districts_final) with enrollment & lunch data by districts (sc_en_dist)
+##############################
+
+district_enr_spatial <- full_join(ca_districts_final, lunch) %>% 
   arrange(DISTRICT)
 
 #st_write(district_enr_spatial, "district_enr_spatial.shp")
@@ -217,7 +222,7 @@ latlong_binded <- cbind(latlong, latlong_district_removed) %>%
 DISTRICT_DATA <- full_join(district_enr_spatial, latlong_binded) %>% 
   arrange(DISTRICT)
 
-# st_write(DISTRICT_DATA, "DISTRICT_DATA.shp")
+st_write(DISTRICT_DATA, "DISTRICT_DATA_LUNCH3.shp")
 # write_csv(DISTRICT_DATA, "DISTRICT_DATA.csv")
 
 # DISTRICT_DATA2 <- st_read("/Users/samanthacsik/Repositories/ESM-244-shiny-app/CA_schools_app3/DISTRICT_DATA.shp")
