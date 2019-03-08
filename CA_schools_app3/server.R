@@ -10,6 +10,7 @@ library(tidyverse)
 ##############################
 # load data
 ##############################
+
 # complete district data with enrollment by district (includes polygons and lat long)
 COUNTY_INCOME_DATA <- st_read("/Users/samanthacsik/Repositories/ESM-244-shiny-app/CA_schools_app3/COUNTY_INCOME_DATA.shp")
 
@@ -58,11 +59,17 @@ shinyServer(function(input, output) {
       # add slightly thicker yellow polygon on top of the selected one
       proxy %>% addPolylines(stroke = TRUE, weight = 4, color="yellow", data = county_polygon, group = "highlighted_county_polygon")
       # output "you have selected county"
-      output$selected_county <- renderText(sprintf("You have selected: %s County", input$county))
+      output$selected_county <- renderText({
+        paste("You have selected: ", input$county, "County")
+      })
       # output county population
-      output$county_population <- renderText(sprintf("Population: %s", county_population))
+      output$county_population <- renderText({
+        paste("Population: ", county_population)
+      })
       # output median family income
-      output$county_income <- renderText(sprintf("Median Family Income (USD): %s", county_income))
+      output$county_income <- renderText({
+        paste("Median Family Income: $",county_income)
+      })
     }
   })
   observe({
@@ -90,13 +97,21 @@ shinyServer(function(input, output) {
       # add a slightly thicker red polygon on top of the selected one
       proxy %>% addPolylines(stroke = TRUE, weight = 4, color="red", data = district_polygon, group = "highlighted_district_polygon")
       # output "you have selected district"
-      output$selected_district <- renderText(sprintf("You have selected: %s School District", input$district))
+      output$selected_district <- renderText({
+        paste("You have selected: ", input$district, "School District")
+      })
       # output total district enrollment
-      output$district_enrollment <- renderText(sprintf("Total Enrollment: %s", district_enrollment))
+      output$district_enrollment <- renderText({
+        paste("Total Enrollment: ", district_enrollment, "Students")
+      })
       # output percentage of students in FRMP
-      output$district_lunches <- renderText(sprintf("Percentage of Students Qualified for FRMP: %s", district_lunches))
+      output$district_lunches <- renderText({
+        paste("Percentage of Students Qualified for FRMP: ", district_lunches, "%")
+      })
       # output percentage of graduates meeting UC/CSU requirements
-      output$district_requirement <- renderText(sprintf("Percentage of Graduates Meeting UC/CSU requirements: %s", district_requirement))
+      output$district_requirement <- renderText({
+        paste("Percentage of Graduates Meeting UC/CSU requirements: ", district_requirement, "%")
+      })
     }
   })
  })

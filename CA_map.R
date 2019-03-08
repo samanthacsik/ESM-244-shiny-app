@@ -119,8 +119,11 @@ requirements <- read_csv("requirements1617.csv") %>%
 ##############################
 
 ca_schools_info <- full_join(lunch, requirements) %>% 
-  mutate(perc_lunch = (total_lunch/total_enr)*100) %>% 
-  mutate(perc_requirements = (total_requirements/total_enr)*100)
+  mutate(perc_lunch1 = (total_lunch/total_enr)*100) %>% 
+  mutate(perc_requirements1 = (total_requirements/total_enr)*100) %>% 
+  mutate(perc_lunch = round(perc_lunch1, 2)) %>% 
+  mutate(perc_requirements = round(perc_requirements1, 2)) %>% 
+  select(DISTRICT, total_enr, perc_lunch, perc_requirements)
 
 ##############################
 # join district geometry data with lunch/requirements data
@@ -154,65 +157,4 @@ latlong_binded <- cbind(latlong, latlong_district_removed) %>%
 DISTRICT_DATA <- full_join(district_school_info_spatial, latlong_binded) %>% 
   arrange(DISTRICT)
 
-st_write(DISTRICT_DATA, "DISTRICT_DATA.shp")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# write_csv(DISTRICT_DATA, "DISTRICT_DATA.csv")
-
-#st_write(district_enr_spatial, "district_enr_spatial.shp")
-
-# district_names <- district_enr_spatial %>% 
-#   pull(DISTRICT)
-
-#write.csv(district_enr_spatial, "district_enr_spatial.csv")
-
-
-
-# DISTRICT_DATA2 <- st_read("/Users/samanthacsik/Repositories/ESM-244-shiny-app/CA_schools_app3/DISTRICT_DATA.shp")
-
-# a <- subset(DISTRICT_DATA2, DISTRICT_DATA2$DISTRICT=='ABC Unified')
-
-##############################
-# use geom_sf to make a map in ggplot
-##############################
-
-# add  spatial data polygons and marker that can be clicked, dragged, or hovered over.
-# map_districts <- leaflet() %>% 
-#   addProviderTiles("OpenStreetMap") %>% 
-#   addPolygons(data = ca_districts_transform, fillOpacity = 0.1, weight = 2) %>% 
-#   addMarkers(lng = -119.4179,
-#              lat = 36.7783, 
-#              popup = "You are here.",
-#              options = markerOptions(draggable = TRUE, riseOnHover = TRUE)) %>% 
-#   setView(lng = -119.4179,
-#           lat = 36.7783,
-#           zoom = 6)
-
-
-# observe({
-#   if(input$county != "") {
-#     
-#     polygon <- subset(COUNTY_INCOME_DATA, COUNTY_INCOME_DATA$NAME == input$county)
-#     
-#     # remove any previously highlighted polygons
-#     ca_county %>% clearGroup("highlighted_polygon")
-#     
-#     # center the view on the county polygon
-#   }
-# })
-
+st_write(DISTRICT_DATA, "DISTRICT_DATA2.shp")
