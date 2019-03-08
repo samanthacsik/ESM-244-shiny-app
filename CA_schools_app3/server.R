@@ -37,30 +37,30 @@ shinyServer(function(input, output) {
   proxy <- leafletProxy("CA_Map") 
   observe({
     if(input$county!="") {
+      # get all the county information
       county_polygon <- subset(COUNTY_INCOME_DATA, COUNTY_INCOME_DATA$NAME == input$county)
       county_latitude <- county_polygon$Latitud
       county_longitude <- county_polygon$Longitd
       county_population <- county_polygon$Popultn
       county_income <- county_polygon$MdFmlyI
       
-      # print("----- County info------------")
+      # print("--------County-----------")
       # print(sprintf("lat: %s", county_latitude))
       # print(sprintf("long: %s", county_longitude))
       # print(sprintf("pop: %s", county_population))
       # print(sprintf("inc: %s", county_income))
       
-      # ------ Map Stuff -----
+      # ------ Map Stuff & Outputs-----
       # remove any previously highlighted polygon
       proxy %>% clearGroup("highlighted_county_polygon")
-      
       # center the view on the county polygon
       proxy %>% setView(lng = county_longitude, lat = county_latitude, zoom = 7)
-      
       # add slightly thicker yellow polygon on top of the selected one
       proxy %>% addPolylines(stroke = TRUE, weight = 4, color="yellow", data = county_polygon, group = "highlighted_county_polygon")
-      
       # output "you have selected county"
       output$selected_county <- renderText(sprintf("You have selected: %s County", input$county))
+      # output county population
+      output$county_population <- renderText(sprintf("Population: %s", county_population))
       # output median family income
       output$county_income <- renderText(sprintf("Median Family Income (USD): %s", county_income))
     }
@@ -75,14 +75,14 @@ shinyServer(function(input, output) {
       district_lunches <- district_polygon$prc_lnc
       district_requirement <- district_polygon$prc_rqr
 
-      # print("----- District shit------------")
+      # print("----- District------------")
       # print(sprintf("lat: %s", district_latitude))
       # print(sprintf("long: %s", district_longitude))
       # print(sprintf("enr: %s", district_enrollment))
       # print(sprintf("lunches: %s", district_lunches))
       # print(sprintf("req: %s", district_requirement))
       
-      # ------ Map Stuff -----
+      # ------ Map Stuff & Outputs-----
       # remove any previously highlighted polygon
       proxy %>% clearGroup("highlighted_district_polygon") 
       # center the view on the county polygon
@@ -91,8 +91,12 @@ shinyServer(function(input, output) {
       proxy %>% addPolylines(stroke = TRUE, weight = 4, color="red", data = district_polygon, group = "highlighted_district_polygon")
       # output "you have selected district"
       output$selected_district <- renderText(sprintf("You have selected: %s School District", input$district))
-      # output total enrollment
+      # output total district enrollment
       output$district_enrollment <- renderText(sprintf("Total Enrollment: %s", district_enrollment))
+      # output percentage of students in FRMP
+      output$district_lunches <- renderText(sprintf("Percentage of Students Qualified for FRMP: %s", district_lunches))
+      # output percentage of graduates meeting UC/CSU requirements
+      output$district_requirement <- renderText(sprintf("Percentage of Graduates Meeting UC/CSU requirements: %s", district_requirement))
     }
   })
  })
