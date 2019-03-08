@@ -8,50 +8,6 @@ library(leaflet)
 library(tmap)
 
 ##############################
-# plot & color code by income using sf
-##############################
-# use geom_sf to make a map in ggplot
-
-# ca_income <- ggplot(ca_df) +
-#   geom_sf(aes(fill = MedFamilyIncome))
-# 
-# ca_income
-# 
-# ca_df_transform <- st_transform(ca_df, crs = 4326)
-# 
-# leaflet(ca_df_transform) %>% 
-#   addTiles() %>% 
-#   addPolygons()
-
-##############################
-# CA counties & med income using spatial data (data from lab 1)
-##############################
-
-# ca_counties <- st_read(dsn = ".", layer = "CA_Counties_TIGER2016") %>%  # "." means we're already in our wd; layer = "first common string name of each file used"
-#   arrange(NAME)
-
-# write_csv(ca_counties, "ca_counties.csv")
-
-# view county data in easy plot
-# ca_land <- ca_counties %>% 
-#   dplyr::select(NAME, ALAND)
-# 
-# # Read pop/income data, then make sure county names column matches
-# ca_pop_inc <- read_csv("ca_pop_inc.csv") %>% 
-#   rename(NAME = COUNTY)
-  #select(NAME)
-
-# Join the two: 
-# ca_df <- full_join(ca_land, ca_pop_inc) %>% 
-#   dplyr::select(NAME, MedFamilyIncome)
-# 
-# # Make a map: 
-# ca_income <- ggplot(ca_df) +
-#   geom_sf(aes(fill = MedFamilyIncome), color = "white", size = 0.2) +
-#   scale_fill_gradientn(colors = c("blue","mediumorchid1","orange")) +
-#   theme_minimal()
-
-##############################
 # Load county spatial data & transform crs
 ##############################
 
@@ -66,18 +22,12 @@ ca_counties_transform <- st_transform(ca_counties, crs = 4326)
 # Load lat long data for counties
 ##############################
 
-# import county lat long data
 county_latlong <- read_csv("county_latlong.csv") 
 
-# join county geometry data with lat long data
-# ca_counties_latlong <- full_join(ca_counties_transform, county_latlong) %>% 
-#   st_transform(crs = 4326)
- 
 ##############################
 # Load income by county data
 ##############################
 
-# # median income data
 ca_pop_inc <- read_csv("ca_pop_inc.csv") %>%
   rename(NAME = COUNTY) %>%
   select(NAME, Population, MedFamilyIncome)
@@ -96,7 +46,7 @@ ca_pop_inc_latlong <- full_join(ca_pop_inc, county_latlong)
 COUNTY_INCOME_DATA <- full_join(ca_counties, ca_pop_inc_latlong) %>% 
   st_transform(crs = 4326)
 
-#st_write(COUNTY_INCOME_DATA, "COUNTY_INCOME_DATA_transform_latlong.shp")
+#st_write(COUNTY_INCOME_DATA, "COUNTY_INCOME_DATA.shp")
 
 ##############################
 # Load district spatial data (elementary, secondar, unified), bind all 3 together, set crs, and remove the string 'School District' from the end of each district name so that it matches the names from enrollment, free meals, and dropout data from CA DoE
@@ -136,38 +86,10 @@ ca_districts_final <- ca_districts_binded %>%
   # dplyr::select(DISTRICT)
 
 ##############################
-# load in enrollment data and wrangle
-##############################
-
-# school_enrollment <- read_csv("school_enrollment.csv") %>% 
-#   gather("grade", "students", 7:21) %>%
-#   mutate(race_eth_name = case_when(
-#     ETHNIC == "0" ~ "Not reported",
-#     ETHNIC == "1" ~ "AIAN",
-#     ETHNIC == "2" ~ "Asian",
-#     ETHNIC == "3" ~ "PIsl",
-#     ETHNIC == "4" ~ "Filipino",
-#     ETHNIC == "5" ~ "Latino",
-#     ETHNIC == "6" ~ "AfricanAm",
-#     ETHNIC == "7" ~ "White",
-#     ETHNIC == "9" ~ "Multiple"),
-#     gender = case_when(
-#       GENDER == "F" ~ "female",
-#       GENDER == "M" ~ "male"
-#     ))
-# 
-# # summarize enrollment by district
-# sc_en_dist <- school_enrollment %>% 
-#   filter(grade != "NA") %>% 
-#   group_by(DISTRICT) %>% 
-#   summarise(total_enr = sum(students))
-
-
-##############################
 # Load & wrangle free or reduced meal program data, which also includes enrollment data (year 16-17)
 ##############################
 
-lunch <- read_csv("free_reduced_lunch.csv") %>% 
+lunch <- read_csv("free_reduced_lunch1617.csv") %>% 
   select(county_name, district_name, enrollment_K12, FRPM_count_K12) %>% 
   rename(DISTRICT = district_name) %>% 
   group_by(DISTRICT) %>% 
@@ -178,28 +100,34 @@ lunch <- read_csv("free_reduced_lunch.csv") %>%
 # Load & wrangle dropout data (year 16-17)
 ##############################
 
-dropouts <- read_csv("dropouts1617.csv")
-
+# dropouts <- read_csv("dropouts1617.csv") %>% 
+#   select(DISTRICT, TOTAL) %>% 
+#   group_by(DISTRICT) %>% 
+#   summarize(total_dropouts = sum(TOTAL))
 
 ##############################
 # Load & wrangle meet UC/CSU requirements (year 16-17)
 ##############################
 
-requirements <- read_csv("meet_uc_requirements1617")
+requirements <- read_csv("requirements1617.csv") %>% 
+  select(COUNTY, DISTRICT, TOTAL) %>% 
+  group_by(DISTRICT) %>% 
+  summarize(total_requirements = sum(TOTAL))
 
 ##############################
-# join district geometries (ca_districts_final) with enrollment & lunch data by districts (sc_en_dist)
+# join lunch & requirements dfs
 ##############################
 
-district_enr_spatial <- full_join(ca_districts_final, lunch) %>% 
+ca_schools_info <- full_join(lunch, requirements) %>% 
+  mutate(perc_lunch = (total_lunch/total_enr)*100) %>% 
+  mutate(perc_requirements = (total_requirements/total_enr)*100)
+
+##############################
+# join district geometry data with lunch/requirements data
+##############################
+
+district_school_info_spatial <- full_join(ca_districts_final, ca_schools_info) %>% 
   arrange(DISTRICT)
-
-#st_write(district_enr_spatial, "district_enr_spatial.shp")
-
-# district_names <- district_enr_spatial %>% 
-#   pull(DISTRICT)
-
-#write.csv(district_enr_spatial, "district_enr_spatial.csv")
 
 ##############################
 # load in coordinate data
@@ -218,12 +146,42 @@ latlong_binded <- cbind(latlong, latlong_district_removed) %>%
   select(latlong_district_removed, Latitude, Longitude) %>% 
   rename(DISTRICT = latlong_district_removed)
 
+##############################
+# join district geometries (ca_districts_final) with enrollment & lunch data by districts (sc_en_dist)
+##############################
+
 # combine latlong data with district_enr_spatial
-DISTRICT_DATA <- full_join(district_enr_spatial, latlong_binded) %>% 
+DISTRICT_DATA <- full_join(district_school_info_spatial, latlong_binded) %>% 
   arrange(DISTRICT)
 
-st_write(DISTRICT_DATA, "DISTRICT_DATA_LUNCH3.shp")
+st_write(DISTRICT_DATA, "DISTRICT_DATA.shp")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # write_csv(DISTRICT_DATA, "DISTRICT_DATA.csv")
+
+#st_write(district_enr_spatial, "district_enr_spatial.shp")
+
+# district_names <- district_enr_spatial %>% 
+#   pull(DISTRICT)
+
+#write.csv(district_enr_spatial, "district_enr_spatial.csv")
+
+
 
 # DISTRICT_DATA2 <- st_read("/Users/samanthacsik/Repositories/ESM-244-shiny-app/CA_schools_app3/DISTRICT_DATA.shp")
 
@@ -234,27 +192,27 @@ st_write(DISTRICT_DATA, "DISTRICT_DATA_LUNCH3.shp")
 ##############################
 
 # add  spatial data polygons and marker that can be clicked, dragged, or hovered over.
-map_districts <- leaflet() %>% 
-  addProviderTiles("OpenStreetMap") %>% 
-  addPolygons(data = ca_districts_transform, fillOpacity = 0.1, weight = 2) %>% 
-  addMarkers(lng = -119.4179,
-             lat = 36.7783, 
-             popup = "You are here.",
-             options = markerOptions(draggable = TRUE, riseOnHover = TRUE)) %>% 
-  setView(lng = -119.4179,
-          lat = 36.7783,
-          zoom = 6)
+# map_districts <- leaflet() %>% 
+#   addProviderTiles("OpenStreetMap") %>% 
+#   addPolygons(data = ca_districts_transform, fillOpacity = 0.1, weight = 2) %>% 
+#   addMarkers(lng = -119.4179,
+#              lat = 36.7783, 
+#              popup = "You are here.",
+#              options = markerOptions(draggable = TRUE, riseOnHover = TRUE)) %>% 
+#   setView(lng = -119.4179,
+#           lat = 36.7783,
+#           zoom = 6)
 
 
-observe({
-  if(input$county != "") {
-    
-    polygon <- subset(COUNTY_INCOME_DATA, COUNTY_INCOME_DATA$NAME == input$county)
-    
-    # remove any previously highlighted polygons
-    ca_county %>% clearGroup("highlighted_polygon")
-    
-    # center the view on the county polygon
-  }
-})
+# observe({
+#   if(input$county != "") {
+#     
+#     polygon <- subset(COUNTY_INCOME_DATA, COUNTY_INCOME_DATA$NAME == input$county)
+#     
+#     # remove any previously highlighted polygons
+#     ca_county %>% clearGroup("highlighted_polygon")
+#     
+#     # center the view on the county polygon
+#   }
+# })
 
