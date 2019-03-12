@@ -103,35 +103,59 @@ library(leaflet)
                     )
                   )),
          
-	     # -----------Tab 3 (School Demographics)----------- #
-         tabPanel("School Demographics",
-                  h3("Tri-County (Ventura, Santa Barbara, San Luis Obispo) School Demographics"),
-                  p("Explore data on racial demographics for schools in the tri-county area below. Select the county, district, and school of interest to visualize demographics for each school. Select a school grade level for higher resolution demographic data by gender and race within schools."),
-                  
-                  # create select widgets for county, district, school across top of page
-                  fluidRow(
-                    column(4, selectizeInput("county2","County", choices = unique(TRI_COUNTY$COUNTY))),
-                    column(4, selectInput("district2", "District", choices = "")),
-                    column(4, selectInput("school", "School", choices = ""))
-                  ),
-                  hr(),
-                  
-                  # create outputfor column plot, which will be faceted by gender
-                  column(12, plotOutput("column_plot")),
-                  hr(),
-                  br(),
-                  br(),
-                  
-                  # create select widget for grade level
-                  fluidRow(
-                    column(4, selectInput("grades", "Grade", choices = ""))
-                  ),
-                  
-                  # create output for tables of female and males students by grade
-                  fluidRow(
-                    column(6, tableOutput("female_grade_table")),
-                    column(6, tableOutput("male_grade_table"))
-                  )
-                )
-     )
- ))
+# 	     # -----------Tab 3 (School Demographics)----------- #
+#          tabPanel("School Demographics",
+#                   h3("Tri-County (Ventura, Santa Barbara, San Luis Obispo) School Demographics"),
+#                   p("Explore data on racial demographics for schools in the tri-county area below. Select the county, district, and school of interest to visualize demographics for each school. Select a school grade level for higher resolution demographic data by gender and race within schools."),
+#                   
+#                   # create select widgets for county, district, school across top of page
+#                   fluidRow(
+#                     column(4, selectizeInput("county2","County", choices = unique(TRI_COUNTY$COUNTY))),
+#                     column(4, selectInput("district2", "District", choices = "")),
+#                     column(4, selectInput("school", "School", choices = ""))
+#                   ),
+#                   hr(),
+#                   
+#                   # create outputfor column plot, which will be faceted by gender
+#                   column(12, plotOutput("column_plot")),
+#                   hr(),
+#                   br(),
+#                   br(),
+#                   
+#                   # create select widget for grade level
+#                   fluidRow(
+#                     column(4, selectInput("grades", "Grade", choices = ""))
+#                   ),
+#                   
+#                   # create output for tables of female and males students by grade
+#                   fluidRow(
+#                     column(6, tableOutput("female_grade_table")),
+#                     column(6, tableOutput("male_grade_table"))
+#                   )
+#                 )
+#      )
+#  ))
+
+# -----------Tab 3 (School Demographics)----------- #
+tabPanel("School Demographics",
+         h3("Tri-County (Ventura, Santa Barbara, San Luis Obispo) School Demographics"),
+         p("Explore data on racial demographics for schools in the tri-county area below. Select the county, district, and school of interest to visualize demographics for each school. Select a school grade level for higher resolution demographic data by gender and race within schools."),
+         
+         sidebarLayout(
+           sidebarPanel(
+             selectizeInput("county2","County", choices = unique(TRI_COUNTY$COUNTY)),
+             selectInput("district2", "District", choices = ""),
+             selectInput("school", "School", choices = ""),
+             selectInput("grades", "Grade", choices = "")
+           ),
+           mainPanel(
+             plotOutput("column_plot"),
+             fluidRow(
+                column(6, tableOutput("female_grade_table")),
+                column(6, tableOutput("male_grade_table"))
+             )
+           )
+         )
+)
+)
+))
