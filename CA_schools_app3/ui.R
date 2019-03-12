@@ -9,19 +9,6 @@ library(sf)
 library(leaflet)
 
 ##############################
-# load data
-##############################
-
-# complete district data with enrollment by district (includes polygons and lat long) for academic year 2016-17
-COUNTY_INCOME_DATA <- st_read("/Users/samanthacsik/Repositories/ESM-244-shiny-app/CA_schools_app3/COUNTY_INCOME_DATA.shp")
-
-# complete district data with enrollment by district (includes polygons and lat long) for academic year 2016-17
-DISTRICT_DATA <- st_read("/Users/samanthacsik/Repositories/ESM-244-shiny-app/CA_schools_app3/DISTRICT_DATA.shp")
-
-# tri-county enrollment data for academic year 2017-18
-TRI_COUNTY <- read_csv("/Users/samanthacsik/Repositories/ESM-244-shiny-app/CA_schools_app3/sc_en_tri.csv")
-
-##############################
 # build ui
 ##############################
 
