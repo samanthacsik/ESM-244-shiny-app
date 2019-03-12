@@ -28,67 +28,52 @@ TRI_COUNTY <- read_csv("/Users/samanthacsik/Repositories/ESM-244-shiny-app/CA_sc
     gender_uncap == "male" ~ "Male"))
 
 ##############################
-# Define server logic
+# define server logic
 ##############################
 
 shinyServer(function(input, output, session) {
   
-  ##############################
-  # Tab 2 (CA Map)
-  ##############################
+  # -----------Tab 1 (Instructions)----------- #
   output$CA_Map <- renderLeaflet({
-    # include map aspects here that won't need to be dynamic 
-    leaflet() %>%
-      addProviderTiles("CartoDB.Positron") %>% #OpenStreetMap
-      addPolygons(data = DISTRICT_DATA, fillOpacity = 0.05, weight = 1, color = "blue") %>% 
-      addPolygons(data = COUNTY_INCOME_DATA, fillOpacity = 0.05, weight = 2.5, color = "black") %>% 
-      setView(lng = -119.4179,
-              lat = 36.7783,
-              zoom = 6)
+    
+  # static map components 
+  leaflet() %>%
+    addProviderTiles("CartoDB.Positron") %>% #OpenStreetMap
+    addPolygons(data = DISTRICT_DATA, fillOpacity = 0.05, weight = 1, color = "blue") %>% 
+    addPolygons(data = COUNTY_INCOME_DATA, fillOpacity = 0.05, weight = 2.5, color = "black") %>% 
+    setView(lng = -119.4179,
+            lat = 36.7783,
+            zoom = 6)
   })
   
-  # interact with data
+  # interactive map components
   proxy <- leafletProxy("CA_Map") 
+  
   observe({
     if(input$county!="") {
+      
       # get all the county information
       county_polygon <- subset(COUNTY_INCOME_DATA, COUNTY_INCOME_DATA$NAME == input$county)
       county_latitude <- county_polygon$Latitud
       county_longitude <- county_polygon$Longitd
       county_population <- county_polygon$Popultn
       county_income <- county_polygon$MdFmlyI
-      
-      # print("--------County-----------")
-      # print(sprintf("lat: %s", county_latitude))
-      # print(sprintf("long: %s", county_longitude))
-      # print(sprintf("pop: %s", county_population))
-      # print(sprintf("inc: %s", county_income))
-      
-      # ------ Map Stuff & Outputs-----
+
+      # -- Map Stuff & Outputs-- #
       # remove any previously highlighted polygon
       proxy %>% clearGroup("highlighted_county_polygon")
       # center the view on the county polygon
       proxy %>% setView(lng = county_longitude, lat = county_latitude, zoom = 7)
       # add slightly thicker yellow polygon on top of the selected one
       proxy %>% addPolylines(stroke = TRUE, weight = 4, color="yellow", data = county_polygon, group = "highlighted_county_polygon")
-      # output "you have selected county"
-      # output$selected_county <- renderText({
-      #   paste("You have selected: ", input$county, "County")
-      # })
-      # # output county population
-      # output$county_population <- renderText({
-      #   paste("Population: ", county_population)
-      # })
-      # # output median family income
-      # output$county_income <- renderText({
-      #   paste("Median Family Income: $",county_income)
-      # })
-      
+
+      # county info table which filters population and median income info by the user-selected county
       output$county_table <- function() {
         county_data <- as.data.frame(COUNTY_INCOME_DATA) %>%
         dplyr::filter(NAME == input$county) %>%
         dplyr::select(NAME, Popultn, MdFmlyI)
 
+        # make county table nice with kable
         county_table <- county_data %>%
           knitr::kable(format = "html", col.names = c("County", "Population", "Median Family Income ($)")) %>%
           kable_styling(bootstrap_options = c("striped", "bordered")) %>%
@@ -96,8 +81,10 @@ shinyServer(function(input, output, session) {
       }
     }
   })
+  
   observe({
     if(input$district!=""){
+      
       # get all the district information
       district_polygon <- subset(DISTRICT_DATA, DISTRICT_DATA$DISTRIC == input$district) 
       district_latitude <- district_polygon$Latitud
@@ -106,42 +93,21 @@ shinyServer(function(input, output, session) {
       district_lunches <- district_polygon$prc_lnc
       district_requirement <- district_polygon$prc_rqr
 
-      # print("----- District------------")
-      # print(sprintf("lat: %s", district_latitude))
-      # print(sprintf("long: %s", district_longitude))
-      # print(sprintf("enr: %s", district_enrollment))
-      # print(sprintf("lunches: %s", district_lunches))
-      # print(sprintf("req: %s", district_requirement))
-      
-      # ------ Map Stuff & Outputs-----
+      # -- Map Stuff & Outputs-- #
       # remove any previously highlighted polygon
       proxy %>% clearGroup("highlighted_district_polygon") 
       # center the view on the county polygon
       proxy %>% setView(lng = district_longitude, lat = district_latitude, zoom = 7)
       # add a slightly thicker red polygon on top of the selected one
       proxy %>% addPolylines(stroke = TRUE, weight = 4, color="red", data = district_polygon, group = "highlighted_district_polygon")
-      # output "you have selected district"
-      # output$selected_district <- renderText({
-      #   paste("You have selected: ", input$district, "School District")
-      # })
-      # # output total district enrollment
-      # output$district_enrollment <- renderText({
-      #   paste("Total Enrollment: ", district_enrollment, "Students")
-      # })
-      # # output percentage of students in FRMP
-      # output$district_lunches <- renderText({
-      #   paste("Percentage of Students Qualified for FRMP: ", district_lunches, "%")
-      # })
-      # # output percentage of graduates meeting UC/CSU requirements
-      # output$district_requirement <- renderText({
-      #   paste("Percentage of Graduates Meeting UC/CSU requirements: ", district_requirement, "%")
-      # })
+    
+    # district info table which filters enrollment, %FRMP, %meeting UC requirements info by the user-selected district  
      output$district_table <- function() {
         district_data <- as.data.frame(DISTRICT_DATA) %>% 
         dplyr::filter(DISTRIC == input$district) %>%
         dplyr::select(DISTRIC, totl_nr, prc_lnc, prc_rqr)
 
-        
+        # make district table nice with kable
         district_table <- district_data %>%
          knitr::kable(format = "html", col.names = c("District", "Total Enrollment", "Students Qualified for FRMP (%)", "Graduates Meeting UC/CSU Requirements (%)")) %>%
          kable_styling(bootstrap_options = c("striped", "bordered")) %>%
@@ -182,7 +148,7 @@ shinyServer(function(input, output, session) {
   
   })
   
-  # # fourth select box, pick a grade
+  # fourth select box, pick a grade
   observe({
     updateSelectInput(session,
                       "grades",
@@ -196,7 +162,8 @@ shinyServer(function(input, output, session) {
   
   # render bar plot of demographic data
   output$column_plot <- renderPlot({
-    # data
+    
+    # wrangle data; filter information by user-selected school
     school_data <- TRI_COUNTY %>%
       filter(SCHOOL == input$school,
              race_eth_name != "NA") %>% 
@@ -206,7 +173,7 @@ shinyServer(function(input, output, session) {
   
     school_data$race_eth_name = str_wrap(school_data$race_eth_name, width = 11)
 
-  # ggplot
+  # ggplot column plot of total district enrollment by race, faceted by gender
     ggplot(school_data, aes(x = reorder(race_eth_name, -total), y = total)) +
       geom_bar(stat = "identity",
                position = "dodge",
@@ -228,7 +195,7 @@ shinyServer(function(input, output, session) {
   
   })
   
-  # table of female student totals
+  # female student table which filters enrollment by user-selected grade
   output$female_grade_table <- function() {
     female <- TRI_COUNTY %>%
       filter(SCHOOL == input$school &
@@ -236,7 +203,8 @@ shinyServer(function(input, output, session) {
                gender == "Female") %>%
       dplyr::select(race_eth_name, students) %>% 
       arrange(-students)
-  
+
+    # make female table nice with kable  
     female_grade_table <- female %>%
       knitr::kable("html",
                    col.names = c("Race", "Number of Students")) %>%
@@ -244,8 +212,7 @@ shinyServer(function(input, output, session) {
       add_header_above(c("Female" = 2)) #background = "skyblue"
   }
   
-  
-  # table of male student totals
+  # male student table which filters enrollment by user-selected grade
   output$male_grade_table <- function() {
     male <- TRI_COUNTY %>%
       filter(SCHOOL == input$school &
@@ -254,6 +221,7 @@ shinyServer(function(input, output, session) {
       select(race_eth_name, students) %>% 
       arrange(-students)
     
+    # make male table nice with kable
     male_grade_table <- male %>% 
       knitr::kable("html",
                    col.names = c("Race", "Number of Students")) %>% 

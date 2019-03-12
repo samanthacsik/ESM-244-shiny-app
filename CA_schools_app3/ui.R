@@ -1,5 +1,3 @@
-# SAM
-
 ##############################
 # install packages
 ##############################
@@ -14,13 +12,13 @@ library(leaflet)
 # load data
 ##############################
 
-# complete district data with enrollment by district (includes polygons and lat long)
+# complete district data with enrollment by district (includes polygons and lat long) for academic year 2016-17
 COUNTY_INCOME_DATA <- st_read("/Users/samanthacsik/Repositories/ESM-244-shiny-app/CA_schools_app3/COUNTY_INCOME_DATA.shp")
 
-# complete district data with enrollment by district (includes polygons and lat long)
+# complete district data with enrollment by district (includes polygons and lat long) for academic year 2016-17
 DISTRICT_DATA <- st_read("/Users/samanthacsik/Repositories/ESM-244-shiny-app/CA_schools_app3/DISTRICT_DATA.shp")
 
-# tri-county enrollment data
+# tri-county enrollment data for academic year 2017-18
 TRI_COUNTY <- read_csv("/Users/samanthacsik/Repositories/ESM-244-shiny-app/CA_schools_app3/sc_en_tri.csv")
 
 ##############################
@@ -31,23 +29,26 @@ TRI_COUNTY <- read_csv("/Users/samanthacsik/Repositories/ESM-244-shiny-app/CA_sc
  shinyUI(fluidPage(
    theme = shinytheme("flatly"),
 
-   # tags$head(
-   #   tags$link(rel = "stylesheet", type = "text/css", href = "my_app.css")
-   # ),
-   
    # Application title
    titlePanel("Assessing the need for academic outreach initiatives across California school districts"),
    
    tabsetPanel(
-         # panel 1 (instructions)
+     
+        # -----------Tab 1 (Instructions)----------- #
          tabPanel("Instructions",
            mainPanel(
+             
+             # importance/motivation for the creation of this app
              h3("Academic outreach in California"),
              p("Academic outreach programs are often recognized as important initiatives for improving the rates of student retention (Quigley & Leon 2003) as well as increasing the percentage of students from underrepresented groups that advance through the academic pipeline (Cooper et al. 2002, Gullatt & Jan 2003, Loza 2003). The University of California's Student Academic Preparation and Educational Partnership (SAPEP) is just one example and comprises a variety of programs to prepare CA students for postsecondary education, including students from socioeconomically disadvantaged backgrounds."),
 	     p("Continued assessment of student status is critical for identifying and implementing such programs throughout the state. This application is intended to be used as a tool for outreach coordinators in CA to target districts and schools that could effectively utilize additional or continued education outreach program support to advance the academic success of their students. We explore economic and demographic data across CA school districts and present information that may be useful for developing models to predict college preparedness based on these socioeconomic variables."),
+	     
+	     # terms and definitions that will be useful for understanding variables considered in this app
 	     h3("Terms and definitions"),
 	     p(strong("Free & Reduced Meal Program (FRMP):"), "Under the FRMP, which is subsidized by the National School Lunch program, students can receive free or reduced-price breakfast and lunch.", tags$a(href = "https://www.cde.ca.gov/ls/nu/rs/scales1819.asp", "Eligibility"), "is based on family income."),
 	     p(strong("Graduates Meeting UC/CSU Requirements:"), "The California Department of Education (CA DoE)", tags$a(href = "https://www.cde.ca.gov/ds/sd/sd/fsgradaf09.asp", "defines"), "students meeting UC/CSU requirements as twelfth-grade graduates who have completed all required courses for entry into the UC/CSU system with a grade of C or higher."),
+	     
+	     # links to data sources
 	     h3("Data sources"),
 	     p("Education data is made publically available by the CA CoE. Original data can be accessed using the links below."),
 	     tags$a(href = "https://www.cde.ca.gov/ds/sd/sd/filesenr.asp", "Enrollment by School"),
@@ -65,6 +66,8 @@ TRI_COUNTY <- read_csv("/Users/samanthacsik/Repositories/ESM-244-shiny-app/CA_sc
 	     tags$a(href = "https://data.ca.gov/dataset/ca-geographic-boundaries", "CA County Boundaries"),
 	     br(),
 	     tags$a(href = "https://www.census.gov/geo/maps-data/data/cbf/cbf_sd.html", "CA District Boundaries (Elementary, Secondary & Unified School Districts)"),
+	     
+	     # literature cited
 	     h3("Literature"),
 	     p("Cooper. Catherine R., Cooper, Jr., Robert G., Azmitia, Margarita, Chavira, Gabriela, Gullatt, Yvette (2002) Bridging multiple worlds: How African Americans and Latino youth in academic outreach programs navigate math pathways to college.",
 	       em("Applied Developmental Science. 6:73-87.")),
@@ -77,10 +80,12 @@ TRI_COUNTY <- read_csv("/Users/samanthacsik/Repositories/ESM-244-shiny-app/CA_sc
 	     )
          ),
          
-         # panel 2 (map of income and enrollment by district)
+	      # -----------Tab 2 (Map)----------- #
          tabPanel("Population, Income & District Statistics",
                   h3("Statewide County and District Information"),
                   sidebarLayout(
+                    
+                    # create sidebar panel for widgets
                     sidebarPanel(
                       
                       # display text about selectInputs
@@ -95,77 +100,55 @@ TRI_COUNTY <- read_csv("/Users/samanthacsik/Repositories/ESM-244-shiny-app/CA_sc
                       # select districts widget
                       selectInput("district", label = "Select District", DISTRICT_DATA$DISTRIC),
                       
+                      # note about missing data
                       p("*Note: Some information may be missing. If a county or district is not highlighted upon selection, spatial data is not currently available.")
                     ),
                     
                     # create main panel for map to poplate
                     mainPanel(
                       column(8,
-                      
-                      #INFO WAS HERE  
                         
                         # create output for map
                         leafletOutput("CA_Map", width = 900, height = 700)
                       ),
 
-                      #------------ SAM NEW STUFF STARTS HERE-------------#                      
+                      # creat output for county and district info tables below map
                       fluidRow(
                         column(10, tableOutput("county_table")),
                         column(10, tableOutput("district_table"))
                       )
-
-                      # column(4,
-                      #   tags$div(class="right-section",
-                      #     # you selected ___ county
-                      #     textOutput("selected_county"),
-                      #   
-                      #     # county population
-                      #     textOutput("county_population"),
-                      #   
-                      #     # county median family income
-                      #     textOutput("county_income")
-                      #   ),
-                      # 
-                      #   tags$div(class="right-section",
-                      #     # you selected ___ district
-                      #     textOutput("selected_district"),
-                      #   
-                      #     # total enrollment
-                      #     textOutput("district_enrollment"),
-                      #   
-                      #     # percentage FRMP
-                      #     textOutput("district_lunches"),
-                      #   
-                      #    # percentage meeting UC requirements
-                      #     textOutput("district_requirement")
-                      #   )
-                      # )
-                      #------------ SAM NEW STUFF ENDS HERE-------------# 
                     )
                   )),
          
-         # panel 3 (table and barplot of enrollment broken down by race and gender)
+	     # -----------Tab 3 (School Demographics)----------- #
          tabPanel("School Demographics",
                   h3("Tri-County (Ventura, Santa Barbara, San Luis Obispo) School Demographics"),
                   p("Explore data on racial demographics for schools in the tri-county area below. Select the county, district, and school of interest to see demographics for each school. Select a grade for more specific information for the school of interest by grade."),
+                  
+                  # create select widgets for county, district, school across top of page
                   fluidRow(
                     column(4, selectizeInput("county2","County", choices = unique(TRI_COUNTY$COUNTY))),
                     column(4, selectInput("district2", "District", choices = "")),
                     column(4, selectInput("school", "School", choices = ""))
                   ),
                   hr(),
+                  
+                  # create outputfor column plot, which will be faceted by gender
                   column(12, plotOutput("column_plot")),
                   hr(),
                   br(),
                   br(),
+                  
+                  # create select widget for grade level
                   fluidRow(
                     column(4, selectInput("grades", "Grade", choices = ""))
                   ),
+                  
+                  # create output for tables of female and males students by grade
                   fluidRow(
                     column(6, tableOutput("female_grade_table")),
                     column(6, tableOutput("male_grade_table"))
                   )
                 )
-     
      )
  ))
