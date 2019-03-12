@@ -56,16 +56,12 @@ library(leaflet)
 	     
 	     # literature cited
 	     h3("Literature"),
-	     p("Cooper. Catherine R., Cooper, Jr., Robert G., Azmitia, Margarita, Chavira, Gabriela, Gullatt, Yvette (2002) Bridging multiple worlds: How African Americans and Latino youth in academic outreach programs navigate math pathways to college.",
-	       em("Applied Developmental Science. 6:73-87.")),
-	     p("Gullatt, Yvette (2003) How do pre-collegiate acadmic outreach programs impact college-going among underrepresented students?",
-	       em("Pathways to College Network.")),
-	     p("Loza, Pete P. (2003) A system at risk: College outreach programs and the educational neglect of underachieving latino high school students.",
-	       em("The Urban Review. 35:43-57.")),
-	     p("Quigley, Denise D. & Leon, Seth. (2003) The early academic outreach program (EAOP) and its impact on high school students' completion of the University of California's prepatory coursework.",
-	       em("CSE Tech Report 589."))
+	     p("Cooper CR, Cooper Jr. RG, Azmitia M, Cavira G, Gullatt Y", strong("(2002)"), "Bridging multiple worlds: How African Americans and Latino youth in academic outreach programs navigate math pathways to college.", em("Applied Developmental Science."), "6:73-87."),
+	     p("Gullatt Y", strong("(2003)"), "How do pre-collegiate acadmic outreach programs impact college-going among underrepresented students?", em("Pathways to College Network.")),
+	     p("Loza PP", strong("(2003)"), "A system at risk: College outreach programs and the educational neglect of underachieving latino high school students.", em("The Urban Review."), "35:43-57."),
+	     p("Quigley DD & Leon S", strong("(2003)"), "The early academic outreach program (EAOP) and its impact on high school students' completion of the University of California's prepatory coursework.", em("CSE Tech Report 589."))
 	     )
-         ),
+    ),
          
 	      # -----------Tab 2 (Map)----------- #
          tabPanel("Population, Income & District Statistics",
