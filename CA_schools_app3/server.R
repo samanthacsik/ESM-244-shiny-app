@@ -31,7 +31,7 @@ TRI_COUNTY <- read_csv("/Users/samanthacsik/Repositories/ESM-244-shiny-app/CA_sc
 
 shinyServer(function(input, output, session) {
   
-  # -----------Tab 1 (Instructions)----------- #
+  # -----------Tab 2 (Map)----------- #
   output$CA_Map <- renderLeaflet({
     
   # static map components 
@@ -114,10 +114,7 @@ shinyServer(function(input, output, session) {
     }
   })
   
-  ##############################
-  # Tab 3 (School Demographics)
-  ##############################
-  
+  # -----------Tab 3 (School Demographics)----------- #
   # first select box, pick a county
   observe({
     updateSelectInput(session, 
