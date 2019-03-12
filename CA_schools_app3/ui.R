@@ -106,7 +106,7 @@ library(leaflet)
 	     # -----------Tab 3 (School Demographics)----------- #
          tabPanel("School Demographics",
                   h3("Tri-County (Ventura, Santa Barbara, San Luis Obispo) School Demographics"),
-                  p("Explore data on racial demographics for schools in the tri-county area below. Select the county, district, and school of interest to see demographics for each school. Select a grade for more specific information for the school of interest by grade."),
+                  p("Explore data on racial demographics for schools in the tri-county area below. Select the county, district, and school of interest to visualize demographics for each school. Select a school grade level for higher resolution demographic data by gender and race within schools."),
                   
                   # create select widgets for county, district, school across top of page
                   fluidRow(
