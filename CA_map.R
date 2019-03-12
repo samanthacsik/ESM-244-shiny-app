@@ -158,3 +158,4 @@ DISTRICT_DATA <- full_join(district_school_info_spatial, latlong_binded) %>%
   arrange(DISTRICT)
 
 st_write(DISTRICT_DATA, "DISTRICT_DATA2.shp")
+am_sum(sam_sum(4, 3), 10)

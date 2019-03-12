@@ -6,6 +6,9 @@
 
 library(shiny)
 library(tidyverse)
+library(kableExtra)
+library(RColorBrewer)
+library(leaflet)
 
 ##############################
 # load data
@@ -16,13 +19,23 @@ COUNTY_INCOME_DATA <- st_read("/Users/samanthacsik/Repositories/ESM-244-shiny-ap
 
 # complete district data with enrollment by district (includes polygons and lat long)
 DISTRICT_DATA <- st_read("/Users/samanthacsik/Repositories/ESM-244-shiny-app/CA_schools_app3/DISTRICT_DATA.shp")
-#DISTRICT_DATA2 <- st_read("/Users/samanthacsik/Repositories/ESM-244-shiny-app/CA_schools_app3/DISTRICT_DATA.shp")
+
+# tri-county enrollment data
+TRI_COUNTY <- read_csv("/Users/samanthacsik/Repositories/ESM-244-shiny-app/CA_schools_app3/sc_en_tri.csv") %>% 
+  rename(gender_uncap = gender) %>% 
+  mutate(gender = case_when(
+    gender_uncap == "female" ~ "Female",
+    gender_uncap == "male" ~ "Male"))
 
 ##############################
 # Define server logic
 ##############################
 
-shinyServer(function(input, output) {
+shinyServer(function(input, output, session) {
+  
+  ##############################
+  # Tab 2 (CA Map)
+  ##############################
   output$CA_Map <- renderLeaflet({
     # include map aspects here that won't need to be dynamic 
     leaflet() %>%
@@ -59,17 +72,28 @@ shinyServer(function(input, output) {
       # add slightly thicker yellow polygon on top of the selected one
       proxy %>% addPolylines(stroke = TRUE, weight = 4, color="yellow", data = county_polygon, group = "highlighted_county_polygon")
       # output "you have selected county"
-      output$selected_county <- renderText({
-        paste("You have selected: ", input$county, "County")
-      })
-      # output county population
-      output$county_population <- renderText({
-        paste("Population: ", county_population)
-      })
-      # output median family income
-      output$county_income <- renderText({
-        paste("Median Family Income: $",county_income)
-      })
+      # output$selected_county <- renderText({
+      #   paste("You have selected: ", input$county, "County")
+      # })
+      # # output county population
+      # output$county_population <- renderText({
+      #   paste("Population: ", county_population)
+      # })
+      # # output median family income
+      # output$county_income <- renderText({
+      #   paste("Median Family Income: $",county_income)
+      # })
+      
+      output$county_table <- function() {
+        county_data <- as.data.frame(COUNTY_INCOME_DATA) %>%
+        dplyr::filter(NAME == input$county) %>%
+        dplyr::select(NAME, Popultn, MdFmlyI)
+
+        county_table <- county_data %>%
+          knitr::kable(format = "html", col.names = c("County", "Population", "Median Family Income ($)")) %>%
+          kable_styling(bootstrap_options = c("striped", "bordered")) %>%
+          add_header_above(c("County Data" = 3))  # background = "skyblue"
+      }
     }
   })
   observe({
@@ -97,21 +121,143 @@ shinyServer(function(input, output) {
       # add a slightly thicker red polygon on top of the selected one
       proxy %>% addPolylines(stroke = TRUE, weight = 4, color="red", data = district_polygon, group = "highlighted_district_polygon")
       # output "you have selected district"
-      output$selected_district <- renderText({
-        paste("You have selected: ", input$district, "School District")
-      })
-      # output total district enrollment
-      output$district_enrollment <- renderText({
-        paste("Total Enrollment: ", district_enrollment, "Students")
-      })
-      # output percentage of students in FRMP
-      output$district_lunches <- renderText({
-        paste("Percentage of Students Qualified for FRMP: ", district_lunches, "%")
-      })
-      # output percentage of graduates meeting UC/CSU requirements
-      output$district_requirement <- renderText({
-        paste("Percentage of Graduates Meeting UC/CSU requirements: ", district_requirement, "%")
-      })
+      # output$selected_district <- renderText({
+      #   paste("You have selected: ", input$district, "School District")
+      # })
+      # # output total district enrollment
+      # output$district_enrollment <- renderText({
+      #   paste("Total Enrollment: ", district_enrollment, "Students")
+      # })
+      # # output percentage of students in FRMP
+      # output$district_lunches <- renderText({
+      #   paste("Percentage of Students Qualified for FRMP: ", district_lunches, "%")
+      # })
+      # # output percentage of graduates meeting UC/CSU requirements
+      # output$district_requirement <- renderText({
+      #   paste("Percentage of Graduates Meeting UC/CSU requirements: ", district_requirement, "%")
+      # })
+     output$district_table <- function() {
+        district_data <- as.data.frame(DISTRICT_DATA) %>% 
+        dplyr::filter(DISTRIC == input$district) %>%
+        dplyr::select(DISTRIC, totl_nr, prc_lnc, prc_rqr)
+
+        
+        district_table <- district_data %>%
+         knitr::kable(format = "html", col.names = c("District", "Total Enrollment", "Students Qualified for FRMP (%)", "Graduates Meeting UC/CSU Requirements (%)")) %>%
+         kable_styling(bootstrap_options = c("striped", "bordered")) %>%
+         add_header_above(c("District Data" = 4))
+      }
     }
   })
- })
+  
+  ##############################
+  # Tab 3 (School Demographics)
+  ##############################
+  
+  # first select box, pick a county
+  observe({
+    updateSelectInput(session, 
+                      "county2", 
+                      choices = unique(TRI_COUNTY$COUNTY))
+  })
+  
+  # second select box, pick a district
+  observe({
+    updateSelectInput(session,
+                      "district2",
+                      choices = TRI_COUNTY %>%
+                        filter(COUNTY == input$county2) %>%
+                        dplyr::select(DISTRICT) %>%
+                        .[[1]])
+  })
+  
+  # third select box, pick a school
+  observe({
+    updateSelectInput(session,
+                      "school",
+                      choices = TRI_COUNTY %>%
+                        filter(DISTRICT == input$district2) %>%
+                        dplyr::select(SCHOOL) %>%
+                        .[[1]])
+  
+  })
+  
+  # # fourth select box, pick a grade
+  observe({
+    updateSelectInput(session,
+                      "grades",
+                      choices = TRI_COUNTY %>%
+                        filter(SCHOOL == input$school &
+                                 grade_full != "NA") %>%
+                        dplyr::select(grade_full) %>%
+                        .[[1]])
+  
+  })
+  
+  # render bar plot of demographic data
+  output$column_plot <- renderPlot({
+    # data
+    school_data <- TRI_COUNTY %>%
+      filter(SCHOOL == input$school,
+             race_eth_name != "NA") %>% 
+      arrange(race_eth_name) %>%
+      group_by(gender, race_eth_name) %>%
+      summarize(total = sum(students))
+  
+    school_data$race_eth_name = str_wrap(school_data$race_eth_name, width = 11)
+
+  # ggplot
+    ggplot(school_data, aes(x = reorder(race_eth_name, -total), y = total)) +
+      geom_bar(stat = "identity",
+               position = "dodge",
+               aes(fill = race_eth_name),
+               show.legend = FALSE) +
+      scale_y_continuous(expand = c(0,0), 
+                         limits = c(0, max(school_data$total) + max(school_data$total)*0.05)) +
+      scale_fill_brewer(palette = "Spectral") +
+      geom_text(aes(label = total),
+                position = position_dodge(width = 0.9), vjust = -0.25) +
+      facet_wrap(~gender) +
+      theme_bw() +
+      theme(strip.background = element_rect(fill = "skyblue")) +
+      theme(axis.ticks.y = element_blank(),
+          axis.text.y = element_blank(),
+          panel.grid = element_line(color = "white")) +
+      labs(x = "Race",
+           y = "Total students enrolled")
+  
+  })
+  
+  # table of female student totals
+  output$female_grade_table <- function() {
+    female <- TRI_COUNTY %>%
+      filter(SCHOOL == input$school &
+               grade_full == input$grades &
+               gender == "Female") %>%
+      dplyr::select(race_eth_name, students) %>% 
+      arrange(-students)
+  
+    female_grade_table <- female %>%
+      knitr::kable("html",
+                   col.names = c("Race", "Number of Students")) %>%
+      kable_styling(bootstrap_options = c("striped", "bordered")) %>%
+      add_header_above(c("Female" = 2)) #background = "skyblue"
+  }
+  
+  
+  # table of male student totals
+  output$male_grade_table <- function() {
+    male <- TRI_COUNTY %>%
+      filter(SCHOOL == input$school &
+               grade_full == input$grades &
+               gender == "Male") %>% 
+      select(race_eth_name, students) %>% 
+      arrange(-students)
+    
+    male_grade_table <- male %>% 
+      knitr::kable("html",
+                   col.names = c("Race", "Number of Students")) %>% 
+      kable_styling(bootstrap_options = c("striped", "bordered")) %>%
+      add_header_above(c("Male" = 2)) # background = "skyblue")
+  }
+})
