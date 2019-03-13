@@ -67,34 +67,25 @@ library(leaflet)
          tabPanel("Population, Income & District Statistics",
                   h3("Statewide County and District Information"),
                   sidebarLayout(
-                    
                     # create sidebar panel for widgets
                     sidebarPanel(
-                      
                       # display text about selectInputs
                       helpText("Choose a county from the dropdown list below to highlight its location and display population & median family income."),
-                      
                       # select counties widget # https://shiny.rstudio.com/reference/shiny/1.2.0/selectInput.html
                       selectInput("county", label = "Select County", COUNTY_INCOME_DATA$NAME),
-                      
                       # display text about district selectInputs
                       helpText("Choose a district to highlight its location and display student enrollment, participation in the FRMP, and college preparedness."),
-                      
                       # select districts widget
                       selectInput("district", label = "Select District", DISTRICT_DATA$DISTRIC),
-                      
                       # note about missing data
                       p("*Note: Some information may be missing. If a county or district is not highlighted upon selection, spatial data is not currently available.")
                     ),
-                    
                     # create main panel for map to poplate
                     mainPanel(
                       column(8,
-                        
                         # create output for map
                         leafletOutput("CA_Map", width = 900, height = 700)
                       ),
-
                       # creat output for county and district info tables below map
                       fluidRow(
                         column(10, tableOutput("county_table")),
@@ -102,50 +93,17 @@ library(leaflet)
                       )
                     )
                   )),
-         
-# 	     # -----------Tab 3 (School Demographics)----------- #
-#          tabPanel("School Demographics",
-#                   h3("Tri-County (Ventura, Santa Barbara, San Luis Obispo) School Demographics"),
-#                   p("Explore data on racial demographics for schools in the tri-county area below. Select the county, district, and school of interest to visualize demographics for each school. Select a school grade level for higher resolution demographic data by gender and race within schools."),
-#                   
-#                   # create select widgets for county, district, school across top of page
-#                   fluidRow(
-#                     column(4, selectizeInput("county2","County", choices = unique(TRI_COUNTY$COUNTY))),
-#                     column(4, selectInput("district2", "District", choices = "")),
-#                     column(4, selectInput("school", "School", choices = ""))
-#                   ),
-#                   hr(),
-#                   
-#                   # create outputfor column plot, which will be faceted by gender
-#                   column(12, plotOutput("column_plot")),
-#                   hr(),
-#                   br(),
-#                   br(),
-#                   
-#                   # create select widget for grade level
-#                   fluidRow(
-#                     column(4, selectInput("grades", "Grade", choices = ""))
-#                   ),
-#                   
-#                   # create output for tables of female and males students by grade
-#                   fluidRow(
-#                     column(6, tableOutput("female_grade_table")),
-#                     column(6, tableOutput("male_grade_table"))
-#                   )
-#                 )
-#      )
-#  ))
 
 # -----------Tab 3 (School Demographics)----------- #
 tabPanel("School Demographics",
          h3("Tri-County (Ventura, Santa Barbara, San Luis Obispo) School Demographics"),
-         p("Explore data on racial demographics for schools in the tri-county area below. Select the county, district, and school of interest to visualize demographics for each school. Select a school grade level for higher resolution demographic data by gender and race within schools."),
-         
          sidebarLayout(
            sidebarPanel(
+             helpText("Explore data on racial demographics for schools in the tri-county area below."),
              selectizeInput("county2","County", choices = unique(TRI_COUNTY$COUNTY)),
              selectInput("district2", "District", choices = ""),
              selectInput("school", "School", choices = ""),
+             helpText("Select a school grade level for higher resolution demographic data by gender and race within schools."),
              selectInput("grades", "Grade", choices = "")
            ),
            mainPanel(
