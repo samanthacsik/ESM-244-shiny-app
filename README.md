@@ -4,4 +4,4 @@
 
 **Created by:** An Bui & Sam Csik
 
-In order to run the app, you will need to reset the file path when inporting the data sets in the server...hoping to fix this soon.
+In order to run the app (CA_schools_app), you will need to reset the file path when reading in the data sets in the server...hoping to fix this soon.
