@@ -1,9 +1,7 @@
 # ESM-244-shiny-app
 
-### Assessing the need for academic outreach initiatives across CA school districts (final title TBD)
+### Assessing the need for academic outreach initiatives across CA school districts 
 
 **Created by:** An Bui & Sam Csik
 
-CCI data from: https://www.cde.ca.gov/ta/ac/cm/index.asp
-
-School enrollment data from: https://www.cde.ca.gov/ds/sd/sd/fsenr.asp
+In order to run the app, you will need to reset the file path when inporting the data sets in the server...hoping to fix this soon.
